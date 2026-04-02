@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Talk to your finances</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     CSS VARIABLES & RESET
+  ============================================================ */
+  :root {
+    --bg: #F0EEE9;
+    --surface: #FFFFFF;
+    --surface-2: #F7F6F2;
+    --border: #E5E2DA;
+    --text-primary: #1A1916;
+    --text-secondary: #6B6860;
+    --text-muted: #A8A49C;
+    --accent: #1A1916;
+    --accent-green: #1E6B4A;
+    --accent-green-light: #E8F5EF;
+    --accent-red: #B83232;
+    --accent-red-light: #FBEAEA;
+    --accent-amber: #8B5E1A;
+    --accent-amber-light: #FDF3E3;
+    --accent-blue: #1A3A6B;
+    --accent-blue-light: #E8EEF8;
+    --accent-purple: #5B1A6B;
+    --accent-purple-light: #F3E8F8;
+    --shadow-sm: 0 1px 3px rgba(26,25,22,0.06), 0 1px 2px rgba(26,25,22,0.04);
+    --shadow-md: 0 4px 16px rgba(26,25,22,0.08), 0 2px 6px rgba(26,25,22,0.05);
+    --shadow-lg: 0 12px 40px rgba(26,25,22,0.10), 0 4px 12px rgba(26,25,22,0.06);
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ============================================================
+     LAYOUT
+  ============================================================ */
+  .app-shell {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: -0.5px;
+  }
+
+  .brand-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.3px;
+    color: var(--text-primary);
+  }
+
+  .brand-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    background: var(--surface-2);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .main-content {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    grid-template-rows: auto 1fr;
+    gap: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 28px 32px;
+    gap: 24px;
+  }
+
+  .left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 84px;
+    max-height: calc(100vh - 100px);
+  }
+
+  /* ============================================================
+     CARDS
+  ============================================================ */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .card-header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.2px;
+    color: var(--text-primary);
+  }
+
+  .card-body {
+    padding: 16px 24px 24px;
+  }
+
+  /* ============================================================
+     OVERVIEW METRICS
+  ============================================================ */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: default;
+  }
+
+  .metric-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+    color: var(--text-primary);
+    line-height: 1.1;
+  }
+
+  .metric-value.green { color: var(--accent-green); }
+  .metric-value.red { color: var(--accent-red); }
+
+  .metric-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .metric-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 6px;
+  }
+
+  .metric-pill.green { background: var(--accent-green-light); color: var(--accent-green); }
+  .metric-pill.amber { background: var(--accent-amber-light); color: var(--accent-amber); }
+
+  /* ============================================================
+     CHART
+  ============================================================ */
+  .chart-section {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 90px;
+  }
+
+  .bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .bar-wrap {
+    width: 100%;
+    height: 72px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .bar {
+    width: 100%;
+    max-width: 32px;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-height: 4px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .bar:hover::after {
+    content: attr(data-amount);
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: white;
+    padding: 3px 7px;
+    border-radius: 5px;
+    font-size: 10px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .bar-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .donut-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .donut-canvas { border-radius: 50%; }
+
+  .category-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 130px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-name { flex: 1; }
+  .legend-pct { font-weight: 600; color: var(--text-primary); }
+
+  /* ============================================================
+     TRANSACTION LIST
+  ============================================================ */
+  .tx-filters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 8px 14px 8px 36px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23A8A49C' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 12px center no-repeat;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); background-color: var(--surface); }
+
+  .filter-btn {
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .tx-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 4px;
+  }
+
+  .tx-table th {
+    text-align: left;
+    padding: 10px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tx-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--surface-2);
+    vertical-align: middle;
+  }
+
+  .tx-table tr:last-child td { border-bottom: none; }
+
+  .tx-table tbody tr {
+    transition: background 0.15s;
+    cursor: default;
+  }
+  .tx-table tbody tr:hover { background: var(--surface-2); }
+
+  .tx-table tbody tr.new-row {
+    animation: rowFadeIn 0.4s ease;
+  }
+
+  @keyframes rowFadeIn {
+    from { background: #E8F5EF; opacity: 0.5; }
+    to { background: transparent; opacity: 1; }
+  }
+
+  .tx-merchant {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 13px;
+  }
+
+  .tx-date {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .tx-amount {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.3px;
+    text-align: right;
+  }
+  .tx-amount.expense { color: var(--accent-red); }
+  .tx-amount.income { color: var(--accent-green); }
+
+  .category-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     ADD TRANSACTION FORM
+  ============================================================ */
+  .add-form {
+    display: grid;
+    grid-template-columns: 120px 1fr 110px auto;
+    gap: 10px;
+    align-items: end;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  .form-input {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface-2);
+    outline: none;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .form-input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+    box-shadow: 0 0 0 3px rgba(26,25,22,0.06);
+  }
+
+  .btn-primary {
+    padding: 9px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    letter-spacing: -0.2px;
+  }
+  .btn-primary:hover { background: #333; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-primary:active { transform: translateY(0); }
+
+  .classify-preview {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--accent-green-light);
+    border: 1px solid #B8DEC8;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--accent-green);
+    font-weight: 500;
+    margin-top: 4px;
+    animation: slideDown 0.2s ease;
+  }
+
+  .classify-preview.show { display: flex; }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .success-toast {
+    display: none;
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    animation: toastIn 0.3s ease;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* ============================================================
+     CHATBOT
+  ============================================================ */
+  .chat-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: calc(100vh - 100px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .chat-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .chat-avatar {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .chat-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: -0.2px;
+  }
+
+  .chat-status {
+    font-size: 11px;
+    color: var(--accent-green);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--accent-green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .msg {
+    max-width: 88%;
+    animation: msgIn 0.25s ease;
+  }
+
+  @keyframes msgIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.user { align-self: flex-end; }
+  .msg.bot { align-self: flex-start; }
+
+  .msg-bubble {
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .msg.user .msg-bubble {
+    background: var(--accent);
+    color: white;
+    border-radius: 14px 14px 3px 14px;
+  }
+
+  .msg.bot .msg-bubble {
+    background: var(--surface-2);
+    color: var(--text-primary);
+    border-radius: 14px 14px 14px 3px;
+    border: 1px solid var(--border);
+  }
+
+  .msg-time {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    padding: 0 4px;
+  }
+  .msg.user .msg-time { text-align: right; }
+
+  .chat-suggestions {
+    padding: 10px 16px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .suggestion-chip {
+    padding: 5px 12px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: var(--font-body);
+  }
+  .suggestion-chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .chat-input-area {
+    padding: 12px 16px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface-2);
+    outline: none;
+    transition: all 0.2s;
+    resize: none;
+  }
+  .chat-input:focus { border-color: var(--accent); background: var(--surface); }
+
+  .chat-send {
+    width: 38px;
+    height: 38px;
+    background: var(--accent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    align-self: flex-end;
+  }
+  .chat-send:hover { background: #333; transform: scale(1.05); }
+  .chat-send svg { stroke: white; }
+
+  .typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 10px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 14px 14px 14px 3px;
+    width: fit-content;
+  }
+
+  .typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    animation: typing 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30% { transform: translateY(-5px); opacity: 1; }
+  }
+
+  /* ============================================================
+     CATEGORY COLORS
+  ============================================================ */
+  .cat-groceries    { background: #E8F5EF; color: #1E6B4A; }
+  .cat-dining       { background: #FFF0E6; color: #C45800; }
+  .cat-transport    { background: #E8EEF8; color: #1A3A6B; }
+  .cat-subscriptions{ background: #F3E8F8; color: #5B1A6B; }
+  .cat-shopping     { background: #FFF8E1; color: #8B5E1A; }
+  .cat-housing      { background: #F0F0F0; color: #444444; }
+  .cat-income       { background: #E8F5EF; color: #1E6B4A; }
+  .cat-utilities    { background: #E8EEF8; color: #1A3A6B; }
+  .cat-health       { background: #FBEAEA; color: #B83232; }
+  .cat-transfers    { background: #F5F0FF; color: #4A1E8B; }
+  .cat-other        { background: #F5F5F5; color: #666666; }
+
+  /* ============================================================
+     MISC
+  ============================================================ */
+  .section-label {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .highlight { font-weight: 600; color: var(--text-primary); }
+
+  @media (max-width: 1100px) {
+    .main-content { grid-template-columns: 1fr; padding: 20px; }
+    .right-column { position: static; max-height: 600px; }
+    .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+    .add-form { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     HTML STRUCTURE
+============================================================ -->
+<div class="app-shell">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-mark">tf</div>
+      <div>
+        <div class="brand-name">Talk to your finances</div>
+        <div class="brand-sub">Value through insight</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="avatar">AL</div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="main-content">
+
+    <!-- LEFT COLUMN -->
+    <div class="left-column">
+
+      <!-- OVERVIEW METRICS -->
+      <div id="metrics-grid" class="metrics-grid"></div>
+
+      <!-- CHART + LEGEND CARD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Spending by category</span>
+          <span style="font-size:11px;color:var(--text-muted)">This month</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-section">
+            <div>
+              <div class="bar-chart" id="bar-chart"></div>
+            </div>
+            <div class="donut-wrap">
+              <canvas id="donut-chart" class="donut-canvas" width="110" height="110"></canvas>
+              <div class="category-legend" id="category-legend"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADD TRANSACTION CARD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Add transaction</span>
+        </div>
+        <div class="card-body">
+          <div class="add-form">
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" id="tx-date" class="form-input">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <input type="text" id="tx-desc" class="form-input" placeholder="e.g. Mercadona, Netflix...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount (€)</label>
+              <input type="number" id="tx-amount" class="form-input" placeholder="0.00" step="0.01">
+            </div>
+            <button class="btn-primary" onclick="addTransaction()">+ Add</button>
+          </div>
+          <div class="classify-preview" id="classify-preview">
+            <span>✦</span>
+            <span id="classify-text">Auto-classified as <strong></strong></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRANSACTION LIST CARD -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Transactions</span>
+          <span id="tx-count-label" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div class="card-body" style="padding-bottom:8px">
+          <div class="tx-filters">
+            <input type="text" class="search-input" id="search-input" placeholder="Search transactions..." oninput="renderTransactions()">
+            <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+            <button class="filter-btn" onclick="setFilter('expense', this)">Expenses</button>
+            <button class="filter-btn" onclick="setFilter('income', this)">Income</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tx-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th style="text-align:right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="tx-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: CHAT -->
+    <div class="right-column">
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-avatar">🤖</div>
+          <div>
+            <div class="chat-name">Finance Copilot</div>
+            <div class="chat-status"><span class="status-dot"></span> Always on</div>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chat-messages">
+          <!-- initial message injected by JS -->
+        </div>
+
+        <div class="chat-suggestions" id="chat-suggestions">
+          <button class="suggestion-chip" onclick="askSuggestion(this)">💰 Total spent?</button>
+          <button class="suggestion-chip" onclick="askSuggestion(this)">📊 Top category</button>
+          <button class="suggestion-chip" onclick="askSuggestion(this)">📺 Subscriptions</button>
+          <button class="suggestion-chip" onclick="askSuggestion(this)">🛒 Groceries spend</button>
+          <button class="suggestion-chip" onclick="askSuggestion(this)">🔝 Biggest expenses</button>
+          <button class="suggestion-chip" onclick="askSuggestion(this)">📋 Summarize finances</button>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chat-input" placeholder="Ask about your finances…" onkeydown="if(event.key==='Enter')sendMessage()">
+          <button class="chat-send" onclick="sendMessage()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- SUCCESS TOAST -->
+<div class="success-toast" id="success-toast">✓ Transaction added and classified</div>
+
+<script>
+// ============================================================
+//  SAMPLE DATA
+// ============================================================
+let transactions = [
+  { id: 1,  date: "2025-06-01", description: "Salary - Accenture",       amount:  2800.00, type: "income",  category: "income" },
+  { id: 2,  date: "2025-06-02", description: "Transferencia Alquiler",    amount:  -850.00, type: "expense", category: "housing" },
+  { id: 3,  date: "2025-06-03", description: "Mercadona",                 amount:   -62.40, type: "expense", category: "groceries" },
+  { id: 4,  date: "2025-06-04", description: "Netflix",                   amount:   -15.99, type: "expense", category: "subscriptions" },
+  { id: 5,  date: "2025-06-04", description: "Spotify",                   amount:    -9.99, type: "expense", category: "subscriptions" },
+  { id: 6,  date: "2025-06-05", description: "Café Nomad – coffee",       amount:    -3.80, type: "expense", category: "dining" },
+  { id: 7,  date: "2025-06-06", description: "Metro TMB",                 amount:   -11.35, type: "expense", category: "transport" },
+  { id: 8,  date: "2025-06-07", description: "Zara",                      amount:   -49.90, type: "expense", category: "shopping" },
+  { id: 9,  date: "2025-06-08", description: "Amazon – cable USB-C",      amount:   -12.99, type: "expense", category: "shopping" },
+  { id: 10, date: "2025-06-09", description: "Restaurante La Pepita",     amount:   -34.50, type: "expense", category: "dining" },
+  { id: 11, date: "2025-06-10", description: "Farmacia Cruz Verde",       amount:   -18.70, type: "expense", category: "health" },
+  { id: 12, date: "2025-06-11", description: "Lidl",                      amount:   -38.20, type: "expense", category: "groceries" },
+  { id: 13, date: "2025-06-12", description: "Uber",                      amount:    -8.60, type: "expense", category: "transport" },
+  { id: 14, date: "2025-06-13", description: "Endesa – electricidad",     amount:   -54.00, type: "expense", category: "utilities" },
+  { id: 15, date: "2025-06-14", description: "Bar El Xampanyet",          amount:   -22.00, type: "expense", category: "dining" },
+  { id: 16, date: "2025-06-15", description: "Freelance payment",         amount:   650.00, type: "income",  category: "income" },
+  { id: 17, date: "2025-06-16", description: "Carrefour",                 amount:   -45.80, type: "expense", category: "groceries" },
+  { id: 18, date: "2025-06-17", description: "Renfe – Barcelona–Madrid",  amount:   -29.90, type: "expense", category: "transport" },
+  { id: 19, date: "2025-06-18", description: "Disney+",                   amount:   -11.99, type: "expense", category: "subscriptions" },
+  { id: 20, date: "2025-06-19", description: "H&M",                       amount:   -67.50, type: "expense", category: "shopping" },
+];
+
+let nextId = 21;
+let activeFilter = "all";
+
+// ============================================================
+//  CATEGORY CLASSIFICATION LOGIC
+// ============================================================
+const categoryRules = [
+  { category: "income",        keywords: ["salary","salario","payroll","nómina","freelance","wage","income","transfer in","pago recibido"] },
+  { category: "housing",       keywords: ["rent","alquiler","landlord","casero","hipoteca","mortgage","transferencia alquiler"] },
+  { category: "groceries",     keywords: ["mercadona","lidl","carrefour","aldi","dia","eroski","alcampo","supermercado","supermarket","grocery","frutas","verduras","consum"] },
+  { category: "dining",        keywords: ["restaurant","restaurante","cafe","café","coffee","bar","tapas","pizza","sushi","burger","mcdonalds","kfc","hamburgesa","bistro","lunch","dinner","brunch","nomad"] },
+  { category: "transport",     keywords: ["uber","metro","bus","renfe","taxi","tram","bicing","cabify","blablacar","parking","gasolina","fuel","tmb","fgc","rodalies","transporte"] },
+  { category: "subscriptions", keywords: ["netflix","spotify","disney","hbo","amazon prime","apple tv","youtube premium","dazn","twitch","adobe","notion","dropbox","icloud","microsoft 365","office","duolingo"] },
+  { category: "shopping",      keywords: ["zara","mango","h&m","hm","primark","nike","adidas","amazon","ebay","fnac","el corte","zalando","asos","shein","bershka","pull&bear","massimo","stradivarius"] },
+  { category: "utilities",     keywords: ["endesa","iberdrola","naturgy","vodafone","movistar","orange","gas natural","agua","ayuntamiento","seguro","insurance","electricidad","electric","water","internet"] },
+  { category: "health",        keywords: ["farmacia","pharmacy","doctor","hospital","clinica","clinic","dentist","dentista","gym","gimnasio","fitpass","optica","optician","salud"] },
+  { category: "transfers",     keywords: ["transferencia","transfer","bizum","paypal","revolut","wise","enviado","sent to","enviado a"] },
+];
+
+function classifyTransaction(description, amount) {
+  if (amount > 0) return "income";
+  const lower = description.toLowerCase();
+  for (const rule of categoryRules) {
+    if (rule.keywords.some(kw => lower.includes(kw))) {
+      if (rule.category === "income" && amount < 0) continue;
+      return rule.category;
+    }
+  }
+  return "other";
+}
+
+// ============================================================
+//  SUMMARY / METRICS LOGIC
+// ============================================================
+function getSummary() {
+  const expenses = transactions.filter(t => t.type === "expense");
+  const incomes  = transactions.filter(t => t.type === "income");
+
+  const totalSpent  = expenses.reduce((s, t) => s + Math.abs(t.amount), 0);
+  const totalIncome = incomes.reduce((s, t) => s + t.amount, 0);
+
+  const catTotals = {};
+  expenses.forEach(t => {
+    catTotals[t.category] = (catTotals[t.category] || 0) + Math.abs(t.amount);
+  });
+
+  const topCat = Object.entries(catTotals).sort((a,b) => b[1]-a[1])[0];
+  const subs   = transactions.filter(t => t.category === "subscriptions");
+  const net    = totalIncome - totalSpent;
+
+  return { totalSpent, totalIncome, catTotals, topCat, subsCount: subs.length, net, expenses, incomes };
+}
+
+// ============================================================
+//  RENDERING LOGIC
+// ============================================================
+const categoryMeta = {
+  groceries:     { label: "Groceries",     icon: "🛒", color: "#1E6B4A" },
+  dining:        { label: "Dining",        icon: "🍽️", color: "#C45800" },
+  transport:     { label: "Transport",     icon: "🚇", color: "#1A3A6B" },
+  subscriptions: { label: "Subscriptions", icon: "📱", color: "#5B1A6B" },
+  shopping:      { label: "Shopping",      icon: "🛍️", color: "#8B5E1A" },
+  housing:       { label: "Housing",       icon: "🏠", color: "#444444" },
+  income:        { label: "Income",        icon: "💰", color: "#1E6B4A" },
+  utilities:     { label: "Utilities",     icon: "⚡", color: "#1A3A6B" },
+  health:        { label: "Health",        icon: "💊", color: "#B83232" },
+  transfers:     { label: "Transfers",     icon: "↔️", color: "#4A1E8B" },
+  other:         { label: "Other",         icon: "📦", color: "#666666" },
+};
+
+function formatEuro(n) {
+  return "€" + Math.abs(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function formatDate(d) {
+  const dt = new Date(d + "T12:00:00");
+  return dt.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
+function renderMetrics() {
+  const s = getSummary();
+  const grid = document.getElementById("metrics-grid");
+  grid.innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Total income</div>
+      <div class="metric-value green">${formatEuro(s.totalIncome)}</div>
+      <div class="metric-sub">${s.incomes.length} transaction${s.incomes.length!==1?"s":""}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total spent</div>
+      <div class="metric-value red">${formatEuro(s.totalSpent)}</div>
+      <div class="metric-sub">${s.expenses.length} transaction${s.expenses.length!==1?"s":""}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Net balance</div>
+      <div class="metric-value ${s.net >= 0 ? "green" : "red"}">${s.net >= 0 ? "+" : "−"}${formatEuro(s.net)}</div>
+      <div class="metric-pill ${s.net >= 0 ? "green" : "amber"}">${s.net >= 0 ? "✓ Positive" : "⚠ Deficit"}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Top category</div>
+      <div class="metric-value" style="font-size:18px">${s.topCat ? (categoryMeta[s.topCat[0]]?.icon || "📦") + " " + (categoryMeta[s.topCat[0]]?.label || s.topCat[0]) : "—"}</div>
+      <div class="metric-sub">${s.topCat ? formatEuro(s.topCat[1]) + " spent" : ""}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Subscriptions</div>
+      <div class="metric-value">${s.subsCount}</div>
+      <div class="metric-pill amber">${formatEuro(transactions.filter(t=>t.category==="subscriptions").reduce((a,t)=>a+Math.abs(t.amount),0))}/mo</div>
+    </div>
+  `;
+}
+
+function renderCharts() {
+  const s = getSummary();
+  const cats = Object.entries(s.catTotals).sort((a,b) => b[1]-a[1]).slice(0, 6);
+  const max = cats.length ? cats[0][1] : 1;
+
+  // Bar chart
+  const barEl = document.getElementById("bar-chart");
+  barEl.innerHTML = cats.map(([cat, amt]) => {
+    const h = Math.max(4, Math.round((amt / max) * 64));
+    const color = categoryMeta[cat]?.color || "#888";
+    return `
+      <div class="bar-group">
+        <div class="bar-wrap">
+          <div class="bar" style="height:${h}px;background:${color};opacity:0.85" data-amount="${formatEuro(amt)}"></div>
+        </div>
+        <div class="bar-label">${categoryMeta[cat]?.icon || "📦"}</div>
+      </div>`;
+  }).join("");
+
+  // Donut chart on canvas
+  const canvas = document.getElementById("donut-chart");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, 110, 110);
+
+  const total = cats.reduce((s,[,v])=>s+v, 0);
+  let startAngle = -Math.PI / 2;
+  const cx = 55, cy = 55, ro = 45, ri = 30;
+
+  cats.forEach(([cat, amt]) => {
+    const slice = (amt / total) * 2 * Math.PI;
+    const color = categoryMeta[cat]?.color || "#888";
+    ctx.beginPath();
+    ctx.moveTo(cx + ro * Math.cos(startAngle), cy + ro * Math.sin(startAngle));
+    ctx.arc(cx, cy, ro, startAngle, startAngle + slice);
+    ctx.arc(cx, cy, ri, startAngle + slice, startAngle, true);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.85;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    startAngle += slice;
+  });
+
+  // Center text
+  ctx.fillStyle = "#1A1916";
+  ctx.font = "bold 11px Syne, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(formatEuro(total), cx, cy + 4);
+
+  // Legend
+  const legendEl = document.getElementById("category-legend");
+  legendEl.innerHTML = cats.slice(0,5).map(([cat, amt]) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${categoryMeta[cat]?.color||'#888'}"></div>
+      <span class="legend-name">${categoryMeta[cat]?.label || cat}</span>
+      <span class="legend-pct">${Math.round((amt/total)*100)}%</span>
+    </div>`).join("");
+}
+
+function renderTransactions(highlightId = null) {
+  const search = document.getElementById("search-input").value.toLowerCase();
+  const filtered = transactions.filter(t => {
+    const matchFilter = activeFilter === "all" || t.type === activeFilter;
+    const matchSearch = !search || t.description.toLowerCase().includes(search) || t.category.includes(search);
+    return matchFilter && matchSearch;
+  }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  document.getElementById("tx-count-label").textContent = filtered.length + " transactions";
+
+  const tbody = document.getElementById("tx-body");
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state">No transactions found</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(t => {
+    const meta = categoryMeta[t.category] || categoryMeta.other;
+    const isNew = t.id === highlightId;
+    return `
+      <tr class="${isNew ? "new-row" : ""}">
+        <td><div class="tx-date">${formatDate(t.date)}</div></td>
+        <td><div class="tx-merchant">${t.description}</div></td>
+        <td><span class="category-tag cat-${t.category}">${meta.icon} ${meta.label}</span></td>
+        <td><div class="tx-amount ${t.type}">${t.type==="income" ? "+" : "−"}${formatEuro(t.amount)}</div></td>
+      </tr>`;
+  }).join("");
+}
+
+function renderAll(highlightId = null) {
+  renderMetrics();
+  renderCharts();
+  renderTransactions(highlightId);
+}
+
+// ============================================================
+//  ADD TRANSACTION LOGIC
+// ============================================================
+function addTransaction() {
+  const date   = document.getElementById("tx-date").value;
+  const desc   = document.getElementById("tx-desc").value.trim();
+  const amount = parseFloat(document.getElementById("tx-amount").value);
+
+  if (!date || !desc || isNaN(amount) || amount === 0) {
+    document.getElementById("tx-desc").style.borderColor = "#B83232";
+    setTimeout(() => document.getElementById("tx-desc").style.borderColor = "", 1200);
+    return;
+  }
+
+  const category = classifyTransaction(desc, amount);
+  const type     = amount > 0 ? "income" : "expense";
+  const tx       = { id: nextId++, date, description: desc, amount, type, category };
+  transactions.push(tx);
+
+  // Show classification preview briefly
+  const preview = document.getElementById("classify-preview");
+  const meta    = categoryMeta[category] || categoryMeta.other;
+  document.getElementById("classify-text").innerHTML = `Auto-classified as <strong>${meta.icon} ${meta.label}</strong>`;
+  preview.classList.add("show");
+  setTimeout(() => preview.classList.remove("show"), 3000);
+
+  // Reset form
+  document.getElementById("tx-desc").value   = "";
+  document.getElementById("tx-amount").value = "";
+
+  // Toast
+  const toast = document.getElementById("success-toast");
+  toast.style.display = "block";
+  setTimeout(() => toast.style.display = "none", 2500);
+
+  renderAll(tx.id);
+}
+
+// Live classification preview while typing description
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("tx-desc").addEventListener("input", function() {
+    const val = this.value.trim();
+    if (!val) { document.getElementById("classify-preview").classList.remove("show"); return; }
+    const cat = classifyTransaction(val, -1);
+    const meta = categoryMeta[cat] || categoryMeta.other;
+    document.getElementById("classify-text").innerHTML = `Will be classified as <strong>${meta.icon} ${meta.label}</strong>`;
+    document.getElementById("classify-preview").classList.add("show");
+  });
+
+  // Set today's date as default
+  document.getElementById("tx-date").value = new Date().toISOString().split("T")[0];
+
+  renderAll();
+  addBotMessage("Hi! I'm your **Finance Copilot** 👋\n\nI can see your current transactions and give you insights in plain language. Try asking me anything about your spending — or tap a suggestion below.");
+});
+
+// ============================================================
+//  FILTER LOGIC
+// ============================================================
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  renderTransactions();
+}
+
+// ============================================================
+//  CHATBOT LOGIC
+// ============================================================
+function addUserMessage(text) {
+  const msgs = document.getElementById("chat-messages");
+  const now  = new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" });
+  const el   = document.createElement("div");
+  el.className = "msg user";
+  el.innerHTML = `<div class="msg-bubble">${text}</div><div class="msg-time">${now}</div>`;
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addBotMessage(text) {
+  const msgs = document.getElementById("chat-messages");
+  const now  = new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" });
+
+  // Show typing indicator
+  const typing = document.createElement("div");
+  typing.className = "msg bot";
+  typing.innerHTML = `<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    msgs.removeChild(typing);
+    const el = document.createElement("div");
+    el.className = "msg bot";
+    // Convert **bold** and newlines
+    const html = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+    el.innerHTML = `<div class="msg-bubble">${html}</div><div class="msg-time">${now}</div>`;
+    msgs.appendChild(el);
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 700 + Math.random() * 400);
+}
+
+function generateBotReply(input) {
+  const q = input.toLowerCase().trim();
+  const s = getSummary();
+
+  // --- Total spent ---
+  if (/total spent|how much.*spent|spent.*month|total.*expense|spending this month/i.test(q)) {
+    const pct = ((s.totalSpent / s.totalIncome) * 100).toFixed(0);
+    return `You've spent **${formatEuro(s.totalSpent)}** this month across **${s.expenses.length} transactions** — that's **${pct}%** of your income of ${formatEuro(s.totalIncome)}.`;
+  }
+
+  // --- Total income ---
+  if (/income|earned|salary|how much.*made|revenue/i.test(q)) {
+    const sources = transactions.filter(t=>t.type==="income");
+    const desc = sources.map(t=>`${t.description} (${formatEuro(t.amount)})`).join(", ");
+    return `Your total income this month is **${formatEuro(s.totalIncome)}** from ${sources.length} source${sources.length!==1?"s":""}: ${desc}.`;
+  }
+
+  // --- Net / balance ---
+  if (/net|balance|left|savings|save|remaining/i.test(q)) {
+    const sign = s.net >= 0 ? "+" : "−";
+    return `Your net balance this month is **${sign}${formatEuro(Math.abs(s.net))}** — income of ${formatEuro(s.totalIncome)} minus ${formatEuro(s.totalSpent)} in expenses. ${s.net >= 0 ? "You're in the green 🟢" : "You're spending more than you earn ⚠️"}`;
+  }
+
+  // --- Top category ---
+  if (/top category|biggest category|most.*spend|where.*money|highest category/i.test(q)) {
+    if (!s.topCat) return "No expense data yet.";
+    const [cat, amt] = s.topCat;
+    const meta = categoryMeta[cat] || categoryMeta.other;
+    const pct = ((amt / s.totalSpent) * 100).toFixed(0);
+    return `Your top spending category is **${meta.icon} ${meta.label}** at **${formatEuro(amt)}**, which is **${pct}%** of your total expenses this month.`;
+  }
+
+  // --- Subscriptions ---
+  if (/subscription|subscriptions|streaming|recurring/i.test(q)) {
+    const subs = transactions.filter(t => t.category === "subscriptions");
+    if (!subs.length) return "You have no subscription transactions recorded yet.";
+    const total = subs.reduce((a,t)=>a+Math.abs(t.amount), 0);
+    const list = subs.map(t => `• **${t.description}** — ${formatEuro(Math.abs(t.amount))}/mo`).join("\n");
+    return `You have **${subs.length} active subscriptions** totalling **${formatEuro(total)}/month**:\n\n${list}`;
+  }
+
+  // --- Specific category spend ---
+  const catKeyMap = {
+    "groceries":  ["groceries","grocery","supermarket","food shopping","supermercado"],
+    "dining":     ["dining","restaurant","restaurants","eating out","coffee","café","cafe","food","bar"],
+    "transport":  ["transport","travel","uber","metro","bus","transit","commute"],
+    "shopping":   ["shopping","clothes","clothing","fashion","amazon","online"],
+    "housing":    ["housing","rent","alquiler","landlord"],
+    "utilities":  ["utilities","bills","electricity","gas","water","internet","phone"],
+    "health":     ["health","pharmacy","doctor","medicine","gym"],
+    "transfers":  ["transfers","transfer","bizum","sent"],
+  };
+
+  for (const [cat, kws] of Object.entries(catKeyMap)) {
+    if (kws.some(kw => q.includes(kw))) {
+      const txs = transactions.filter(t => t.category === cat);
+      if (!txs.length) return `No **${categoryMeta[cat]?.label || cat}** transactions found this month.`;
+      const total = txs.reduce((a,t)=>a+Math.abs(t.amount),0);
+      const list  = txs.map(t=>`• ${t.description} — ${formatEuro(Math.abs(t.amount))}`).join("\n");
+      return `You've spent **${formatEuro(total)}** on **${categoryMeta[cat]?.label || cat}** this month across ${txs.length} transaction${txs.length!==1?"s":""}:\n\n${list}`;
+    }
+  }
+
+  // --- Compare two categories ---
+  if (/compare|vs|versus/i.test(q)) {
+    const found = [];
+    for (const cat of Object.keys(catKeyMap)) {
+      if (catKeyMap[cat].some(kw => q.includes(kw))) found.push(cat);
+    }
+    if (found.length >= 2) {
+      const [a, b] = found;
+      const totA = transactions.filter(t=>t.category===a).reduce((s,t)=>s+Math.abs(t.amount),0);
+      const totB = transactions.filter(t=>t.category===b).reduce((s,t)=>s+Math.abs(t.amount),0);
+      const winner = totA > totB ? categoryMeta[a]?.label : categoryMeta[b]?.label;
+      return `**${categoryMeta[a]?.label}** vs **${categoryMeta[b]?.label}**:\n\n• ${categoryMeta[a]?.label}: **${formatEuro(totA)}**\n• ${categoryMeta[b]?.label}: **${formatEuro(totB)}**\n\nYou're spending more on **${winner}** this month.`;
+    }
+  }
+
+  // --- Biggest expenses ---
+  if (/biggest|largest|most expensive|top expense|top spending|highest/i.test(q)) {
+    const top5 = [...transactions].filter(t=>t.type==="expense").sort((a,b)=>Math.abs(b.amount)-Math.abs(a.amount)).slice(0,5);
+    const list = top5.map((t,i)=>`${i+1}. **${t.description}** — ${formatEuro(Math.abs(t.amount))}`).join("\n");
+    return `Your 5 biggest expenses this month:\n\n${list}`;
+  }
+
+  // --- Summary ---
+  if (/summar|overview|breakdown|finances|report|how am i doing/i.test(q)) {
+    const cats = Object.entries(s.catTotals).sort((a,b)=>b[1]-a[1]).slice(0,4);
+    const catList = cats.map(([c,v]) => `• ${categoryMeta[c]?.icon||"📦"} ${categoryMeta[c]?.label||c}: **${formatEuro(v)}**`).join("\n");
+    const sign = s.net >= 0 ? "+" : "−";
+    return `📊 **This month's summary:**\n\n💰 Income: **${formatEuro(s.totalIncome)}**\n💸 Spent: **${formatEuro(s.totalSpent)}**\n${s.net>=0?"🟢":"🔴"} Net: **${sign}${formatEuro(Math.abs(s.net))}**\n\n**Top spending categories:**\n${catList}\n\n📺 Subscriptions: **${s.subsCount}** active`;
+  }
+
+  // --- Transaction count ---
+  if (/how many transaction|number of|count/i.test(q)) {
+    return `You have **${transactions.length} transactions** this month — **${s.expenses.length} expenses** and **${s.incomes.length} income** entries.`;
+  }
+
+  // --- Fallback ---
+  return `I can help you with:\n\n• **Total spent / income / balance**\n• **Category breakdowns** (groceries, dining, transport…)\n• **Subscriptions & recurring charges**\n• **Biggest expenses**\n• **Monthly summary**\n\nTry asking something like _"How much did I spend on groceries?"_ or _"Summarize my finances"_.`;
+}
+
+function sendMessage() {
+  const input = document.getElementById("chat-input");
+  const text  = input.value.trim();
+  if (!text) return;
+  addUserMessage(text);
+  input.value = "";
+  const reply = generateBotReply(text);
+  addBotMessage(reply);
+}
+
+function askSuggestion(btn) {
+  const label = btn.textContent.replace(/^[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, "").trim();
+  const mapped = {
+    "Total spent?":    "How much did I spend this month?",
+    "Top category":    "What is my top spending category?",
+    "Subscriptions":   "Show my subscriptions",
+    "Groceries spend": "How much did I spend on groceries?",
+    "Biggest expenses":"What are my biggest expenses?",
+    "Summarize finances": "Summarize my finances this month",
+  };
+  const question = mapped[label] || label;
+  addUserMessage(question);
+  const reply = generateBotReply(question);
+  addBotMessage(reply);
+}
+</script>
+</body>
+</html>

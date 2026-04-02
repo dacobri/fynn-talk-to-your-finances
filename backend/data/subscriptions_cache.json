@@ -1,0 +1,87 @@
+{
+  "active": [
+    {
+      "merchant": "Amazon Prime",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 4.99,
+      "lastCharge": "2024-12-15 05:08:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "DiR Gym",
+      "category": "Healthcare & Medical",
+      "monthlyCost": 59.9,
+      "lastCharge": "2024-12-15 05:15:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "Disney+",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 8.99,
+      "lastCharge": "2024-12-10 00:39:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "HBO Max",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 8.99,
+      "lastCharge": "2024-12-12 01:12:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "Movistar",
+      "category": "Utilities & Services",
+      "monthlyCost": 39.99,
+      "lastCharge": "2024-12-05 06:04:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "Netflix",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 17.99,
+      "lastCharge": "2024-12-05 02:30:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "Orange Internet",
+      "category": "Utilities & Services",
+      "monthlyCost": 29.99,
+      "lastCharge": "2024-12-03 04:12:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "Spotify",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 9.99,
+      "lastCharge": "2024-12-08 02:07:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
+      "merchant": "YouTube Premium",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 13.99,
+      "lastCharge": "2024-12-22 01:37:00",
+      "chargeCount": 31,
+      "active": true
+    },
+    {
+      "merchant": "iCloud",
+      "category": "Entertainment & Recreation",
+      "monthlyCost": 2.99,
+      "lastCharge": "2024-12-20 05:41:00",
+      "chargeCount": 60,
+      "active": true
+    }
+  ],
+  "inactive": [],
+  "totalMonthly": 197.81,
+  "activeCount": 10
+}
