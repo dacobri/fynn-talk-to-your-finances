@@ -93,8 +93,8 @@ export default function BarStatsPage() {
                   className='cursor-pointer'
                   onClick={(_data: any, index: number) => handleBarClick(chartData[index])}
                 >
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  {chartData.map((entry) => (
+                    <Cell key={entry.category} fill={entry.fill} />
                   ))}
                 </Bar>
               </BarChart>

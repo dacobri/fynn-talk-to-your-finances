@@ -4,7 +4,7 @@
       "merchant": "Amazon Prime",
       "category": "Entertainment & Recreation",
       "monthlyCost": 4.99,
-      "lastCharge": "2024-12-15 05:08:00",
+      "lastCharge": "2024-12-15 09:02:00",
       "chargeCount": 60,
       "active": true
     },
@@ -12,7 +12,7 @@
       "merchant": "DiR Gym",
       "category": "Healthcare & Medical",
       "monthlyCost": 59.9,
-      "lastCharge": "2024-12-15 05:15:00",
+      "lastCharge": "2024-12-15 11:41:00",
       "chargeCount": 60,
       "active": true
     },
@@ -20,7 +20,7 @@
       "merchant": "Disney+",
       "category": "Entertainment & Recreation",
       "monthlyCost": 8.99,
-      "lastCharge": "2024-12-10 00:39:00",
+      "lastCharge": "2024-12-08 10:01:00",
       "chargeCount": 60,
       "active": true
     },
@@ -28,7 +28,7 @@
       "merchant": "HBO Max",
       "category": "Entertainment & Recreation",
       "monthlyCost": 8.99,
-      "lastCharge": "2024-12-12 01:12:00",
+      "lastCharge": "2024-12-12 09:40:00",
       "chargeCount": 60,
       "active": true
     },
@@ -36,15 +36,7 @@
       "merchant": "Netflix",
       "category": "Entertainment & Recreation",
       "monthlyCost": 17.99,
-      "lastCharge": "2024-12-05 02:30:00",
-      "chargeCount": 60,
-      "active": true
-    },
-    {
-      "merchant": "Spotify",
-      "category": "Entertainment & Recreation",
-      "monthlyCost": 9.99,
-      "lastCharge": "2024-12-08 02:07:00",
+      "lastCharge": "2024-12-05 09:18:00",
       "chargeCount": 60,
       "active": true
     },
@@ -52,7 +44,7 @@
       "merchant": "YouTube Premium",
       "category": "Entertainment & Recreation",
       "monthlyCost": 13.99,
-      "lastCharge": "2024-12-22 01:37:00",
+      "lastCharge": "2024-12-22 08:52:00",
       "chargeCount": 31,
       "active": true
     },
@@ -60,12 +52,12 @@
       "merchant": "iCloud",
       "category": "Entertainment & Recreation",
       "monthlyCost": 2.99,
-      "lastCharge": "2024-12-20 05:41:00",
+      "lastCharge": "2024-12-20 10:47:00",
       "chargeCount": 60,
       "active": true
     }
   ],
   "inactive": [],
-  "totalMonthly": 127.83,
-  "activeCount": 8
+  "totalMonthly": 117.84,
+  "activeCount": 7
 }

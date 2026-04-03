@@ -58,21 +58,31 @@ function fmt(n: number): string {
 
 function DashboardContent({
   sales,
+  pie_stats,
   bar_stats,
   area_stats,
 }: {
   sales: React.ReactNode;
+  pie_stats: React.ReactNode;
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
   const { dateRange, setDateRange, data } = useDashboard();
-  const { summary, loading } = data;
+  const { summary, investmentTotals, investmentHistory, loading } = data;
 
   const totalIncome = summary?.totalIncome ?? 0;
   const totalSpent = summary?.totalSpent ?? 0;
   const netBalance = summary?.netBalance ?? 0;
   const topCat = summary?.topCategory ?? { name: '—', amount: 0 };
   const subs = summary?.subscriptions ?? { count: 0, monthlyTotal: 0 };
+
+  // Compute period-specific portfolio value and return from history
+  const histLen = investmentHistory.length;
+  const periodEndValue = histLen > 0 ? investmentHistory[histLen - 1].amount : (investmentTotals?.currentValue ?? 0);
+  const periodStartValue = histLen > 1 ? investmentHistory[0].amount : 0;
+  const periodReturn = periodStartValue > 0
+    ? ((periodEndValue - periodStartValue) / periodStartValue) * 100
+    : (investmentTotals?.returnPct ?? 0);
 
   return (
     <PageContainer>
@@ -81,8 +91,9 @@ function DashboardContent({
         <DateRangeSelector value={dateRange} onChange={setDateRange} />
 
         {/* Metric Cards */}
-        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-1.5 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-5'>
+        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-1.5 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-3 lg:grid-cols-6'>
           <MetricCard
+            key='income'
             label='Total Income'
             value={`€${fmt(totalIncome)}`}
             valueClassName='text-green-500'
@@ -95,6 +106,7 @@ function DashboardContent({
             }
           />
           <MetricCard
+            key='spent'
             label='Total Spent'
             value={`€${fmt(totalSpent)}`}
             valueClassName='text-red-500'
@@ -107,6 +119,7 @@ function DashboardContent({
             }
           />
           <MetricCard
+            key='balance'
             label='Net Balance'
             value={`${netBalance >= 0 ? '' : '-'}€${fmt(Math.abs(netBalance))}`}
             valueClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
@@ -118,6 +131,7 @@ function DashboardContent({
             }
           />
           <MetricCard
+            key='topcat'
             label='Top Category'
             value={topCat.name}
             loading={loading}
@@ -126,12 +140,25 @@ function DashboardContent({
             }
           />
           <MetricCard
+            key='subs'
             label='Subscriptions'
             value={`${subs.count} active`}
             loading={loading}
             href='/dashboard/subscriptions'
             badge={
               <Badge variant='outline'>€{fmt(subs.monthlyTotal)}/mo</Badge>
+            }
+          />
+          <MetricCard
+            key='investments'
+            label='Investment Assets'
+            value={`€${fmt(periodEndValue)}`}
+            loading={loading}
+            href='/dashboard/investments'
+            badge={
+              <Badge variant='outline' className={periodReturn >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
+                {periodReturn >= 0 ? '+' : ''}{periodReturn.toFixed(1)}%
+              </Badge>
             }
           />
         </div>
@@ -142,7 +169,8 @@ function DashboardContent({
             {area_stats}
             {bar_stats}
           </div>
-          <div className='col-span-1 lg:col-span-3'>
+          <div className='col-span-1 lg:col-span-3 flex flex-col gap-2'>
+            {pie_stats}
             {sales}
           </div>
         </div>
@@ -164,7 +192,7 @@ export default function OverViewLayout({
 }) {
   return (
     <DashboardProvider>
-      <DashboardContent sales={sales} bar_stats={bar_stats} area_stats={area_stats} />
+      <DashboardContent sales={sales} pie_stats={pie_stats} bar_stats={bar_stats} area_stats={area_stats} />
     </DashboardProvider>
   );
 }

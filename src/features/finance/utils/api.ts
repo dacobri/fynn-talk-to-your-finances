@@ -7,6 +7,9 @@ import {
   type Summary,
   type CategoryBreakdown,
   type MonthlySpending,
+  type BankAccount,
+  type InvestmentsResponse,
+  type InvestmentHistoryPoint,
 } from "./mock-data";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -32,6 +35,7 @@ export async function fetchTransactions(params?: {
   search?: string;
   filter?: "all" | "expense" | "income";
   category?: string;
+  source?: string;
   start?: string;
   end?: string;
   sort?: string;
@@ -46,6 +50,7 @@ export async function fetchTransactions(params?: {
     if (params?.start) queryParams.append("start", params.start);
     if (params?.end) queryParams.append("end", params.end);
     if (params?.sort) queryParams.append("sort", params.sort);
+    if (params?.source) queryParams.append("source", params.source);
 
     const response = await fetch(
       `${API_BASE}/api/transactions?${queryParams}`
@@ -291,6 +296,67 @@ export interface SubscriptionsResponse {
   inactive: Subscription[];
   totalMonthly: number;
   activeCount: number;
+}
+
+export async function fetchAccounts(): Promise<{ accounts: BankAccount[] }> {
+  try {
+    const response = await fetch(`${API_BASE}/api/accounts`);
+    if (!response.ok) throw new Error("Failed to fetch accounts");
+    return await response.json();
+  } catch (error) {
+    console.log("Using fallback accounts");
+    return {
+      accounts: [
+        { name: "CaixaBank", transactionCount: 2280, firstTransaction: "2020-01-01", lastTransaction: "2024-12-27", status: "connected" },
+      ],
+    };
+  }
+}
+
+export async function uploadCSV(bankName: string, file: File): Promise<{ inserted: number; source: string }> {
+  const formData = new FormData();
+  formData.append("bank_name", bankName);
+  formData.append("file", file);
+
+  const response = await fetch(`${API_BASE}/api/upload-csv`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({ detail: "Upload failed" }));
+    throw new Error(err.detail || "Upload failed");
+  }
+  return await response.json();
+}
+
+export async function fetchInvestments(includeOrders?: boolean): Promise<InvestmentsResponse> {
+  try {
+    const params = new URLSearchParams();
+    if (includeOrders) params.append("include_orders", "true");
+    const qs = params.toString();
+    const response = await fetch(`${API_BASE}/api/investments${qs ? `?${qs}` : ""}`);
+    if (!response.ok) throw new Error("Failed to fetch investments");
+    return await response.json();
+  } catch (error) {
+    console.log("Using fallback investments");
+    return { holdings: [], totals: { invested: 0, currentValue: 0, returnEur: 0, returnPct: 0 } };
+  }
+}
+
+export async function fetchInvestmentHistory(dateRange?: { start: string; end: string }): Promise<{ data: InvestmentHistoryPoint[]; granularity: string }> {
+  try {
+    const params = new URLSearchParams();
+    if (dateRange?.start) params.append("start", dateRange.start);
+    if (dateRange?.end) params.append("end", dateRange.end);
+    const qs = params.toString();
+    const response = await fetch(`${API_BASE}/api/investments/history${qs ? `?${qs}` : ""}`);
+    if (!response.ok) throw new Error("Failed to fetch investment history");
+    return await response.json();
+  } catch (error) {
+    console.log("Using fallback investment history");
+    return { data: [], granularity: "daily" };
+  }
 }
 
 export async function fetchSubscriptions(): Promise<SubscriptionsResponse> {

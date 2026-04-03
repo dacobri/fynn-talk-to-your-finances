@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { DateRangeValue, getDefaultDateRange } from './date-range-selector';
-import type { Summary, CategoryBreakdown, Transaction } from '../utils/mock-data';
+import type { Summary, CategoryBreakdown, Transaction, InvestmentTotals, Holding, InvestmentHistoryPoint } from '../utils/mock-data';
 
 export interface SpendingDataPoint {
   label: string;
@@ -15,6 +15,10 @@ interface DashboardData {
   spendingTrend: SpendingDataPoint[];
   spendingGranularity: 'daily' | 'weekly' | 'monthly';
   recentTransactions: Transaction[];
+  investmentTotals: InvestmentTotals | null;
+  investmentHoldings: Holding[];
+  investmentHistory: InvestmentHistoryPoint[];
+  investmentGranularity: 'daily' | 'weekly' | 'monthly';
   loading: boolean;
 }
 
@@ -43,6 +47,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     spendingTrend: [],
     spendingGranularity: 'monthly',
     recentTransactions: [],
+    investmentTotals: null,
+    investmentHoldings: [],
+    investmentHistory: [],
+    investmentGranularity: 'daily',
     loading: true,
   });
 
@@ -64,8 +72,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       fetch(`${API_BASE}/api/summary?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
       fetch(`${API_BASE}/api/categories?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
       fetch(`${API_BASE}/api/monthly-spending?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
-      fetch(`${API_BASE}/api/transactions?${qs}&limit=8`).then((r) => r.ok ? r.json() : null).catch(() => null),
-    ]).then(([summary, catData, trendData, txData]) => {
+      fetch(`${API_BASE}/api/transactions?${qs}&limit=5`).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch(`${API_BASE}/api/investments`).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch(`${API_BASE}/api/investments/history?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+    ]).then(([summary, catData, trendData, txData, investData, investHistData]) => {
       if (cancelled) return;
       setData({
         summary: summary,
@@ -73,6 +83,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         spendingTrend: trendData?.data ?? [],
         spendingGranularity: trendData?.granularity ?? 'monthly',
         recentTransactions: txData?.transactions ?? [],
+        investmentTotals: investData?.totals ?? null,
+        investmentHoldings: investData?.holdings ?? [],
+        investmentHistory: investHistData?.data ?? [],
+        investmentGranularity: investHistData?.granularity ?? 'daily',
         loading: false,
       });
     });

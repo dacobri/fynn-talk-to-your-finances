@@ -29,17 +29,17 @@ function formatDate(timestamp: string): string {
 
 export default function SalesPage() {
   const { data } = useDashboard();
-  const transactions = data.recentTransactions;
+  const transactions = data.recentTransactions.slice(0, 5);
 
   return (
-    <Card className='@container/card'>
+    <Card className='@container/card flex flex-col' style={{ maxHeight: '305px' }}>
       <CardHeader className='py-2'>
         <CardTitle>Recent Transactions</CardTitle>
       </CardHeader>
-      <CardContent className='px-0'>
+      <CardContent className='px-0 flex-1 overflow-hidden'>
         {data.loading ? (
           <div className='space-y-3 px-6'>
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 5 }).map((_, i) => (
               <Skeleton key={i} className='h-8 w-full' />
             ))}
           </div>
@@ -73,7 +73,7 @@ export default function SalesPage() {
           </div>
         )}
       </CardContent>
-      <CardFooter className='border-t pt-3 pb-16'>
+      <CardFooter className='border-t pt-2 pb-2'>
         <Link href='/dashboard/transactions' className='text-sm font-medium text-primary hover:underline'>
           View all transactions →
         </Link>

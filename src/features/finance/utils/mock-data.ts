@@ -1,6 +1,7 @@
 export interface Transaction {
   id: string;
   account_id: string;
+  source?: string;
   merchant_name: string;
   timestamp: string;
   description: string;
@@ -9,6 +10,52 @@ export interface Transaction {
   currency: string;
   predicted_category: string;
   confidence: number;
+}
+
+export interface BankAccount {
+  name: string;
+  transactionCount: number;
+  firstTransaction: string;
+  lastTransaction: string;
+  status: string;
+}
+
+export interface Holding {
+  ticker: string;
+  companyName: string;
+  assetType: string;
+  quantity: number;
+  avgPurchasePrice: number;
+  purchaseCurrency: string;
+  currentPrice: number;
+  currentPriceCurrency: string;
+  currentValueEur: number;
+  totalCostEur: number;
+  returnEur: number;
+  returnPct: number;
+  firstPurchase: string;
+  lastPurchase: string;
+  todayChangeEur?: number;
+  todayChangePct?: number;
+  orders?: { date: string; quantity: number; pricePerShare: number; totalCost: number; currency: string }[];
+}
+
+export interface InvestmentTotals {
+  invested: number;
+  currentValue: number;
+  returnEur: number;
+  returnPct: number;
+}
+
+export interface InvestmentsResponse {
+  holdings: Holding[];
+  totals: InvestmentTotals;
+}
+
+export interface InvestmentHistoryPoint {
+  label: string;
+  amount: number;
+  date: string;
 }
 
 export interface Summary {
@@ -94,6 +141,16 @@ export const CATEGORY_COLORS: Record<string, ColorSet> = {
     text: "#C45800",
     chart: "#E67E22",
   },
+  Transfer: {
+    bg: "#EDE9FE",
+    text: "#6D28D9",
+    chart: "#8B5CF6",
+  },
+  Investment: {
+    bg: "#DBEAFE",
+    text: "#1D4ED8",
+    chart: "#3B82F6",
+  },
 };
 
 export const CATEGORIES = [
@@ -107,6 +164,8 @@ export const CATEGORIES = [
   "Income",
   "Government & Legal",
   "Charity & Donations",
+  "Transfer",
+  "Investment",
 ];
 
 export const mockTransactions: Transaction[] = [

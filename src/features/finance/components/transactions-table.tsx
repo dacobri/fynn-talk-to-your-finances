@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatDate, formatEuro } from '../utils/format';
-import { fetchTransactions } from '../utils/api';
+import { fetchTransactions, fetchAccounts } from '../utils/api';
 import { CATEGORIES } from '../utils/mock-data';
 import type { Transaction } from '../utils/mock-data';
 import { CategoryBadge } from './category-badge';
@@ -41,9 +41,11 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
   const [urlMinAmt, setUrlMinAmt] = useQueryState('min', parseAsString.withDefault(''));
   const [urlMaxAmt, setUrlMaxAmt] = useQueryState('max', parseAsString.withDefault(''));
   const [urlSort, setUrlSort] = useQueryState('sort', parseAsString.withDefault('date-desc'));
+  const [urlSource, setUrlSource] = useQueryState('source', parseAsString.withDefault(''));
 
   // ── Local UI state (mirrors URL but debounced for search) ─────────────
   const [searchInput, setSearchInput] = useState(urlSearch);
+  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
 
   // Debounce search input → URL
   useEffect(() => {
@@ -53,6 +55,19 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
 
   // Sync URL search → local input (e.g. on back navigation)
   useEffect(() => { setSearchInput(urlSearch); }, [urlSearch]);
+
+  // Fetch available accounts on mount
+  useEffect(() => {
+    const loadAccounts = async () => {
+      try {
+        const data = await fetchAccounts();
+        setAccounts(data.accounts ?? data);
+      } catch (error) {
+        console.error('Failed to load accounts:', error);
+      }
+    };
+    loadAccounts();
+  }, []);
 
   // ── Date range derived from URL params ────────────────────────────────
   const dateRange: DateRangeValue = React.useMemo(() => {
@@ -89,6 +104,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
         start: dateRange.start,
         end: dateRange.end,
         sort: urlSort || undefined,
+        source: urlSource || undefined,
       });
 
       let filtered = result.transactions as Transaction[];
@@ -110,7 +126,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [page, urlSearch, urlFilter, urlCategory, dateRange.start, dateRange.end, urlMinAmt, urlMaxAmt, urlSort]);
+  }, [page, urlSearch, urlFilter, urlCategory, dateRange.start, dateRange.end, urlMinAmt, urlMaxAmt, urlSort, urlSource]);
 
   useEffect(() => {
     loadTransactions();
@@ -123,7 +139,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
       return;
     }
     setPage(1);
-  }, [urlSearch, urlFilter, urlCategory, dateRange.start, dateRange.end, urlMinAmt, urlMaxAmt]);
+  }, [urlSearch, urlFilter, urlCategory, dateRange.start, dateRange.end, urlMinAmt, urlMaxAmt, urlSource]);
 
   // ── Table columns ─────────────────────────────────────────────────────
   const columns: ColumnDef<Transaction>[] = [
@@ -134,6 +150,17 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
         <div className='text-sm font-medium'>{formatDate(row.getValue('timestamp'))}</div>
       ),
       enableSorting: true,
+    },
+    {
+      id: 'source',
+      header: 'Bank Account',
+      cell: ({ row }) => (
+        <div className='inline-flex items-center rounded-full bg-muted px-2.5 py-0.5'>
+          <span className='text-xs font-medium text-muted-foreground'>
+            {row.original.source || 'CaixaBank'}
+          </span>
+        </div>
+      ),
     },
     {
       id: 'merchant',
@@ -159,10 +186,10 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
       header: () => <div className='text-right'>Amount</div>,
       cell: ({ row }) => {
         const amount = row.getValue('amount') as number;
-        const isIncome = (row.original.predicted_category || row.original.category) === 'Income';
+        const isPositive = amount >= 0;
         return (
-          <div className={`text-right text-sm font-semibold ${isIncome ? 'text-green-600 dark:text-green-400' : ''}`}>
-            {isIncome ? '+' : '-'}{formatEuro(Math.abs(amount))}
+          <div className={`text-right text-sm font-semibold ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            {isPositive ? '+' : ''}{formatEuro(amount)}
           </div>
         );
       },
@@ -177,7 +204,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
     initialState: { pagination: { pageIndex: 0, pageSize } },
   });
 
-  const hasActiveFilters = urlCategory || urlFilter !== 'all' || urlSearch || urlMinAmt || urlMaxAmt;
+  const hasActiveFilters = urlCategory || urlFilter !== 'all' || urlSearch || urlMinAmt || urlMaxAmt || urlSource;
 
   const SORT_OPTIONS = [
     { value: 'date-desc', label: 'Date: newest first' },
@@ -195,6 +222,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
     setUrlMinAmt(null);
     setUrlMaxAmt(null);
     setUrlSort(null);
+    setUrlSource(null);
     setSearchInput('');
   };
 
@@ -237,6 +265,20 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
             <SelectItem value='all'>All categories</SelectItem>
             {CATEGORIES.map((cat) => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={urlSource || 'all'}
+          onValueChange={(v) => setUrlSource(v === 'all' ? null : v)}
+        >
+          <SelectTrigger className='w-[200px]'>
+            <SelectValue placeholder='All accounts' />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value='all'>All accounts</SelectItem>
+            {accounts.map((acc) => (
+              <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
