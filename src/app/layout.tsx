@@ -51,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           'bg-background overflow-x-hidden overscroll-none font-sans antialiased',
           fontVariables
         )}
+        suppressHydrationWarning
       >
         <NextTopLoader color='var(--primary)' showSpinner={false} />
         <NuqsAdapter>

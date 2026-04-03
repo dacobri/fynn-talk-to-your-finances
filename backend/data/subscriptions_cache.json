@@ -33,6 +33,14 @@
       "active": true
     },
     {
+      "merchant": "Landlord",
+      "category": "Financial Services",
+      "monthlyCost": 2000.0,
+      "lastCharge": "2024-12-01 03:10:00",
+      "chargeCount": 60,
+      "active": true
+    },
+    {
       "merchant": "Movistar",
       "category": "Utilities & Services",
       "monthlyCost": 39.99,
@@ -82,6 +90,6 @@
     }
   ],
   "inactive": [],
-  "totalMonthly": 197.81,
-  "activeCount": 10
+  "totalMonthly": 2197.81,
+  "activeCount": 11
 }
