@@ -9,49 +9,45 @@ import { useFilteredNavGroups } from '@/hooks/use-nav';
 
 export default function KBar({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const allGroups = useMemo(() => [...navGroups, ...kbarExtraItems], []);
-  const filteredGroups = useFilteredNavGroups(allGroups);
 
-  // These action are for the navigation
+  // Sidebar items go into "Pages", extras keep their own group labels
+  const sidebarFiltered = useFilteredNavGroups(navGroups);
+  const extraFiltered = useFilteredNavGroups(kbarExtraItems);
+
   const actions = useMemo(() => {
-    // Define navigateTo inside the useMemo callback to avoid dependency array issues
-    const navigateTo = (url: string) => {
-      router.push(url);
-    };
+    const navigateTo = (url: string) => router.push(url);
 
-    const allItems = filteredGroups.flatMap((group) => group.items);
+    // Sidebar items → "Pages" section
+    const sidebarActions = sidebarFiltered
+      .flatMap((g) => g.items)
+      .filter((item) => item.url !== '#')
+      .map((item) => ({
+        id: `${item.title.toLowerCase().replace(/\s+/g, '-')}Action`,
+        name: item.title,
+        shortcut: item.shortcut,
+        keywords: item.title.toLowerCase(),
+        section: 'Pages',
+        subtitle: `Go to ${item.title}`,
+        perform: () => navigateTo(item.url)
+      }));
 
-    return allItems.flatMap((navItem) => {
-      // Only include base action if the navItem has a real URL and is not just a container
-      const baseAction =
-        navItem.url !== '#'
-          ? {
-              id: `${navItem.title.toLowerCase()}Action`,
-              name: navItem.title,
-              shortcut: navItem.shortcut,
-              keywords: navItem.title.toLowerCase(),
-              section: 'Navigation',
-              subtitle: `Go to ${navItem.title}`,
-              perform: () => navigateTo(navItem.url)
-            }
-          : null;
+    // Extra items → keep their group label as section (Pages / Account)
+    const extraActions = extraFiltered.flatMap((group) =>
+      group.items
+        .filter((item) => item.url !== '#')
+        .map((item) => ({
+          id: `${item.title.toLowerCase().replace(/\s+/g, '-')}Action`,
+          name: item.title,
+          shortcut: item.shortcut,
+          keywords: item.title.toLowerCase(),
+          section: group.label || 'Pages',
+          subtitle: `Go to ${item.title}`,
+          perform: () => navigateTo(item.url)
+        }))
+    );
 
-      // Map child items into actions
-      const childActions =
-        navItem.items?.map((childItem) => ({
-          id: `${childItem.title.toLowerCase()}Action`,
-          name: childItem.title,
-          shortcut: childItem.shortcut,
-          keywords: childItem.title.toLowerCase(),
-          section: navItem.title,
-          subtitle: `Go to ${childItem.title}`,
-          perform: () => navigateTo(childItem.url)
-        })) ?? [];
-
-      // Return only valid actions (ignoring null base actions for containers)
-      return baseAction ? [baseAction, ...childActions] : childActions;
-    });
-  }, [router, filteredGroups]);
+    return [...sidebarActions, ...extraActions];
+  }, [router, sidebarFiltered, extraFiltered]);
 
   return (
     <KBarProvider actions={actions}>

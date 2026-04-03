@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import { Icons } from '@/components/icons';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { NotificationCard } from '@/components/ui/notification-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRouter } from 'next/navigation';
 import { useNotificationStore } from '../utils/store';
+import NotificationPreferences from './notification-preferences';
 
 const actionRoutes: Record<string, string> = {
   view: '/dashboard/workspaces',
@@ -20,6 +22,7 @@ export default function NotificationsPage() {
   const { notifications, markAsRead, markAllAsRead, unreadCount } = useNotificationStore();
   const router = useRouter();
   const count = unreadCount();
+  const [showPreferences, setShowPreferences] = useState(false);
 
   const unreadNotifications = notifications.filter((n) => n.status === 'unread');
   const readNotifications = notifications.filter((n) => n.status === 'read');
@@ -65,29 +68,43 @@ export default function NotificationsPage() {
       pageTitle='Notifications'
       pageDescription='View and manage all your notifications.'
       pageHeaderAction={
-        count > 0 ? (
-          <Button variant='outline' size='sm' onClick={markAllAsRead}>
-            Mark all as read
+        <div className='flex items-center gap-2'>
+          {count > 0 && (
+            <Button variant='outline' size='sm' onClick={markAllAsRead}>
+              Mark all as read
+            </Button>
+          )}
+          <Button
+            variant={showPreferences ? 'default' : 'outline'}
+            size='sm'
+            onClick={() => setShowPreferences(!showPreferences)}
+          >
+            <Icons.settings className='mr-1.5 size-4' />
+            Preferences
           </Button>
-        ) : undefined
+        </div>
       }
     >
-      <Tabs defaultValue='all'>
-        <TabsList>
-          <TabsTrigger value='all'>All ({notifications.length})</TabsTrigger>
-          <TabsTrigger value='unread'>Unread ({unreadNotifications.length})</TabsTrigger>
-          <TabsTrigger value='read'>Read ({readNotifications.length})</TabsTrigger>
-        </TabsList>
-        <TabsContent value='all' className='mt-4'>
-          {renderList(notifications)}
-        </TabsContent>
-        <TabsContent value='unread' className='mt-4'>
-          {renderList(unreadNotifications)}
-        </TabsContent>
-        <TabsContent value='read' className='mt-4'>
-          {renderList(readNotifications)}
-        </TabsContent>
-      </Tabs>
+      <div className='space-y-6'>
+        {showPreferences && <NotificationPreferences />}
+
+        <Tabs defaultValue='all'>
+          <TabsList>
+            <TabsTrigger value='all'>All ({notifications.length})</TabsTrigger>
+            <TabsTrigger value='unread'>Unread ({unreadNotifications.length})</TabsTrigger>
+            <TabsTrigger value='read'>Read ({readNotifications.length})</TabsTrigger>
+          </TabsList>
+          <TabsContent value='all' className='mt-4'>
+            {renderList(notifications)}
+          </TabsContent>
+          <TabsContent value='unread' className='mt-4'>
+            {renderList(unreadNotifications)}
+          </TabsContent>
+          <TabsContent value='read' className='mt-4'>
+            {renderList(readNotifications)}
+          </TabsContent>
+        </Tabs>
+      </div>
     </PageContainer>
   );
 }

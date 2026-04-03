@@ -33,10 +33,14 @@ export const navGroups: NavGroup[] = [
   }
 ];
 
-/** Extra pages available via ⌘K command palette (and profile menu) only. */
+/**
+ * Extra pages surfaced in the ⌘K command palette only (not in sidebar).
+ * Grouped into KBar sections: "Pages" merges with sidebar items,
+ * "Account" is a separate section.
+ */
 export const kbarExtraItems: NavGroup[] = [
   {
-    label: 'Account',
+    label: 'Pages',
     items: [
       {
         title: 'Subscriptions',
@@ -45,7 +49,12 @@ export const kbarExtraItems: NavGroup[] = [
         shortcut: ['s', 's'],
         isActive: false,
         items: []
-      },
+      }
+    ]
+  },
+  {
+    label: 'Account',
+    items: [
       {
         title: 'Profile',
         url: '/dashboard/profile',
@@ -58,13 +67,6 @@ export const kbarExtraItems: NavGroup[] = [
         title: 'Billing',
         url: '/dashboard/billing',
         icon: 'creditCard',
-        isActive: false,
-        items: []
-      },
-      {
-        title: 'Settings',
-        url: '/dashboard/settings',
-        icon: 'settings',
         isActive: false,
         items: []
       },
