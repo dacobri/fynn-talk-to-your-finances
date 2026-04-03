@@ -451,7 +451,7 @@ export default function InvestmentsPageComponent() {
             title="Total Invested"
             value={formatEuro(totals.invested)}
             isLoading={isLoading}
-            icon={Icons.wallet}
+            icon={Icons.creditCard}
           />
           <SummaryCard
             title="Current Value"

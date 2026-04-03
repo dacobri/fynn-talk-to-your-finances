@@ -18,7 +18,7 @@ function formatText(text: string): string {
       // bullet list: "- item" or "• item" → <li>
       .replace(/^[-•]\s+(.+)$/gm, '<li>$1</li>')
       // wrap consecutive <li> in <ul>
-      .replace(/(<li>.*<\/li>\n?)+/gs, (match) => `<ul class="mt-1 space-y-1 pl-4 list-disc">${match}</ul>`)
+      .replace(/(<li>[\s\S]*?<\/li>\n?)+/g, (match) => `<ul class="mt-1 space-y-1 pl-4 list-disc">${match}</ul>`)
       // double newline → paragraph break
       .replace(/\n{2,}/g, '</p><p class="mt-2">')
       // single newline → <br>

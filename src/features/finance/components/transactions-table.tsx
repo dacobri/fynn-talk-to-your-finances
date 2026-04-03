@@ -17,7 +17,7 @@ import {
 import { formatDate, formatEuro } from '../utils/format';
 import { fetchTransactions, fetchAccounts } from '../utils/api';
 import { CATEGORIES } from '../utils/mock-data';
-import type { Transaction } from '../utils/mock-data';
+import type { Transaction, BankAccount } from '../utils/mock-data';
 import { CategoryBadge } from './category-badge';
 import { Icons } from '@/components/icons';
 import {
@@ -45,7 +45,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
 
   // ── Local UI state (mirrors URL but debounced for search) ─────────────
   const [searchInput, setSearchInput] = useState(urlSearch);
-  const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
+  const [accounts, setAccounts] = useState<BankAccount[]>([]);
 
   // Debounce search input → URL
   useEffect(() => {
@@ -278,7 +278,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
           <SelectContent>
             <SelectItem value='all'>All accounts</SelectItem>
             {accounts.map((acc) => (
-              <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+              <SelectItem key={acc.name} value={acc.name}>{acc.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
