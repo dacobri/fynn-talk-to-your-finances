@@ -40,6 +40,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
   const [urlSearch, setUrlSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [urlMinAmt, setUrlMinAmt] = useQueryState('min', parseAsString.withDefault(''));
   const [urlMaxAmt, setUrlMaxAmt] = useQueryState('max', parseAsString.withDefault(''));
+  const [urlSort, setUrlSort] = useQueryState('sort', parseAsString.withDefault('date-desc'));
 
   // ── Local UI state (mirrors URL but debounced for search) ─────────────
   const [searchInput, setSearchInput] = useState(urlSearch);
@@ -87,6 +88,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
         category: urlCategory || undefined,
         start: dateRange.start,
         end: dateRange.end,
+        sort: urlSort || undefined,
       });
 
       let filtered = result.transactions as Transaction[];
@@ -108,7 +110,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [page, urlSearch, urlFilter, urlCategory, dateRange.start, dateRange.end, urlMinAmt, urlMaxAmt]);
+  }, [page, urlSearch, urlFilter, urlCategory, dateRange.start, dateRange.end, urlMinAmt, urlMaxAmt, urlSort]);
 
   useEffect(() => {
     loadTransactions();
@@ -177,12 +179,22 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
 
   const hasActiveFilters = urlCategory || urlFilter !== 'all' || urlSearch || urlMinAmt || urlMaxAmt;
 
+  const SORT_OPTIONS = [
+    { value: 'date-desc', label: 'Date: newest first' },
+    { value: 'date-asc', label: 'Date: oldest first' },
+    { value: 'amount-desc', label: 'Amount: highest first' },
+    { value: 'amount-asc', label: 'Amount: lowest first' },
+  ] as const;
+
+  const sortLabel = SORT_OPTIONS.find((o) => o.value === urlSort)?.label ?? 'Date: newest first';
+
   const clearFilters = () => {
     setUrlSearch(null);
     setUrlFilter(null);
     setUrlCategory(null);
     setUrlMinAmt(null);
     setUrlMaxAmt(null);
+    setUrlSort(null);
     setSearchInput('');
   };
 
@@ -230,7 +242,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
         </Select>
       </div>
 
-      {/* Amount Filter */}
+      {/* Amount Filter + Sort */}
       <div className='flex items-center gap-2'>
         <span className='text-sm text-muted-foreground whitespace-nowrap'>Amount:</span>
         <Input
@@ -253,6 +265,20 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
             Clear filters
           </Button>
         )}
+        <div className='ml-auto'>
+          <Select value={urlSort} onValueChange={(v) => setUrlSort(v)}>
+            <SelectTrigger className='h-8 w-[210px] text-xs'>
+              <SelectValue>{sortLabel}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value} className='text-xs'>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Table */}

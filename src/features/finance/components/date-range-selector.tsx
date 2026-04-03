@@ -65,6 +65,12 @@ export function DateRangeSelector({ value, onChange }: DateRangeSelectorProps) {
   const [calendarOpen, setCalendarOpen] = React.useState(false);
   const [customRange, setCustomRange] = React.useState<DateRange | undefined>(undefined);
 
+  // ── Ref tracks clicks synchronously (no React batching delay) ──────
+  // This is the key fix: React state updates are async, so when Radix
+  // fires onOpenChange(false) after a day click, the state may still be
+  // stale. A ref updates instantly in the same event loop tick.
+  const selectCountRef = React.useRef(0);
+
   const handlePreset = (preset: DateRangePreset) => {
     const { start, end } = getPresetRange(preset);
     onChange({ start: toDateStr(start), end: toDateStr(end), preset });
@@ -72,27 +78,30 @@ export function DateRangeSelector({ value, onChange }: DateRangeSelectorProps) {
 
   const handleCustomSelect = (range: DateRange | undefined) => {
     setCustomRange(range);
-    // Only close and apply when user has selected both from and to
-    if (range?.from && range?.to) {
+    selectCountRef.current += 1;
+
+    // Only close and apply after the SECOND click when both dates exist
+    if (selectCountRef.current >= 2 && range?.from && range?.to) {
       onChange({
         start: toDateStr(range.from),
         end: toDateStr(range.to),
         preset: 'custom',
       });
+      selectCountRef.current = 0;
       setCalendarOpen(false);
     }
   };
 
-  // Reset partial selection when calendar opens.
-  // Block auto-close while user is mid-selection (from chosen, to not yet).
   const handleOpenChange = (open: boolean) => {
-    if (!open && customRange?.from && !customRange?.to) {
-      // User clicked a start date — Radix tries to close the popover.
-      // Keep it open so the user can pick the end date.
+    if (!open && selectCountRef.current === 1) {
+      // First date picked — Radix is trying to close the popover.
+      // Block it so the user can pick the end date.
       return;
     }
     if (open) {
+      // Reset everything when the calendar opens
       setCustomRange(undefined);
+      selectCountRef.current = 0;
     }
     setCalendarOpen(open);
   };

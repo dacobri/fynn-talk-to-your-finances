@@ -33,34 +33,10 @@
       "active": true
     },
     {
-      "merchant": "Landlord",
-      "category": "Financial Services",
-      "monthlyCost": 2000.0,
-      "lastCharge": "2024-12-01 03:10:00",
-      "chargeCount": 60,
-      "active": true
-    },
-    {
-      "merchant": "Movistar",
-      "category": "Utilities & Services",
-      "monthlyCost": 39.99,
-      "lastCharge": "2024-12-05 06:04:00",
-      "chargeCount": 60,
-      "active": true
-    },
-    {
       "merchant": "Netflix",
       "category": "Entertainment & Recreation",
       "monthlyCost": 17.99,
       "lastCharge": "2024-12-05 02:30:00",
-      "chargeCount": 60,
-      "active": true
-    },
-    {
-      "merchant": "Orange Internet",
-      "category": "Utilities & Services",
-      "monthlyCost": 29.99,
-      "lastCharge": "2024-12-03 04:12:00",
       "chargeCount": 60,
       "active": true
     },
@@ -90,6 +66,6 @@
     }
   ],
   "inactive": [],
-  "totalMonthly": 2197.81,
-  "activeCount": 11
+  "totalMonthly": 127.83,
+  "activeCount": 8
 }

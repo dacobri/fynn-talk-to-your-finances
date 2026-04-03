@@ -34,6 +34,7 @@ export async function fetchTransactions(params?: {
   category?: string;
   start?: string;
   end?: string;
+  sort?: string;
 }): Promise<{ transactions: Transaction[]; total: number }> {
   try {
     const queryParams = new URLSearchParams();
@@ -44,6 +45,7 @@ export async function fetchTransactions(params?: {
     if (params?.category) queryParams.append("category", params.category);
     if (params?.start) queryParams.append("start", params.start);
     if (params?.end) queryParams.append("end", params.end);
+    if (params?.sort) queryParams.append("sort", params.sort);
 
     const response = await fetch(
       `${API_BASE}/api/transactions?${queryParams}`

@@ -382,9 +382,16 @@ async def get_transactions(
 
         sort_by = "timestamp DESC"
         if sort:
-            allowed_sorts = ["amount", "timestamp", "merchant_name", "category"]
-            if sort in allowed_sorts:
-                sort_by = f"{sort} DESC"
+            SORT_MAP = {
+                "date-desc": "timestamp DESC",
+                "date-asc": "timestamp ASC",
+                "amount-desc": "amount DESC",
+                "amount-asc": "amount ASC",
+                # Legacy compat
+                "amount": "amount DESC",
+                "timestamp": "timestamp DESC",
+            }
+            sort_by = SORT_MAP.get(sort, "timestamp DESC")
 
         offset = (page - 1) * limit
         query = f"""
@@ -588,9 +595,10 @@ async def get_monthly_spending(
             span_days = 365  # no range = full year
 
         # Auto-detect granularity
+        # <=31 days: daily | 32-93 days (up to ~3 months): weekly | >93 days: monthly
         if span_days <= 31:
             granularity = "daily"
-        elif span_days <= 90:
+        elif span_days <= 93:
             granularity = "weekly"
         else:
             granularity = "monthly"
@@ -770,16 +778,27 @@ def _detect_subscriptions_with_llm() -> dict:
             max_tokens=2048,
         )
 
-        prompt = f"""Analyse these merchant transaction patterns from the last 2 months and identify ONLY real subscriptions — recurring services that charge a fixed amount on a regular (monthly/yearly) basis.
+        prompt = f"""Analyse these merchant transaction patterns from the last 2 months and identify ONLY optional lifestyle/entertainment subscriptions — services the user actively chose to subscribe to.
 
-Real subscriptions are things like: Netflix, Spotify, Disney+, HBO, gym memberships, phone plans, cloud storage, insurance, internet service, etc.
+YES — include these as subscriptions:
+- Streaming services: Netflix, Spotify, Disney+, HBO, YouTube Premium, Apple TV+
+- Software / cloud: iCloud, Amazon Prime, Dropbox, Adobe, Microsoft 365
+- Gym / fitness memberships: DiR, Holmes Place, Basic-Fit
+- Other optional services: meal kits, news subscriptions, VPNs, dating apps
 
-NOT subscriptions: restaurants, bars, grocery stores, clothing shops, ATM withdrawals, parking, taxi/rideshare, general retail stores — even if the person visits them regularly.
+NO — do NOT include any of the following, even if they recur monthly at a fixed amount:
+- Rent / housing: landlord, property management, mortgage payments
+- Utility bills: electricity, water, gas, heating
+- Telecom / internet / phone plans: Vodafone, Movistar, Orange, O2, Yoigo
+- Insurance payments: health, home, car, life insurance
+- Government / tax: council tax, municipal fees
+- Loan repayments, bank fees, ATM withdrawals
+- Restaurants, bars, grocery stores, clothing shops, retail stores, parking, taxi/rideshare
 
 Key signals for a real subscription:
 - Nearly identical amount each month (within €1 variance)
 - Exactly 1 charge per month (not 5-10 visits like a grocery store)
-- The merchant name sounds like a service/platform, not a store
+- The merchant name sounds like a streaming/software/gym service, not a landlord, utility company, or telecom provider
 
 Here are the merchants and their charges in the last 2 months:
 
