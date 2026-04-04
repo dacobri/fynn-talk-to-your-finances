@@ -32,11 +32,11 @@ export default function SalesPage() {
   const transactions = data.recentTransactions.slice(0, 5);
 
   return (
-    <Card className='@container/card flex flex-col' style={{ maxHeight: '305px' }}>
+    <Card className='@container/card flex flex-col' style={{ height: '381px' }}>
       <CardHeader className='py-2'>
         <CardTitle>Recent Transactions</CardTitle>
       </CardHeader>
-      <CardContent className='px-0 flex-1 overflow-hidden'>
+      <CardContent className='px-0 flex-1 overflow-y-auto'>
         {data.loading ? (
           <div className='space-y-3 px-6'>
             {Array.from({ length: 5 }).map((_, i) => (

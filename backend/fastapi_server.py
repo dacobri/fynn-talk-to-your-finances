@@ -23,6 +23,8 @@ import json
 import asyncio
 import concurrent.futures
 from langchain_core.callbacks import BaseCallbackHandler
+from dotenv import load_dotenv
+load_dotenv()
 
 # All backend code is now self-contained in this directory
 _BACKEND_DIR = Path(__file__).resolve().parent
@@ -121,6 +123,14 @@ class SubscriptionsResponse(BaseModel):
     totalMonthly: float
     activeCount: int
 
+class AddInvestmentRequest(BaseModel):
+    ticker: str
+    company_name: str
+    asset_type: str
+    quantity: float
+    purchase_price: float
+    purchase_date: str
+    currency: str = "EUR"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FASTAPI APP
@@ -1334,7 +1344,60 @@ async def get_investment_history(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Investment history error: {str(e)}")
 
+@app.post("/api/investments/add")
+async def add_investment(request: AddInvestmentRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        total_cost = request.quantity * request.purchase_price
+        cursor.execute(
+            """INSERT INTO investments
+               (ticker, company_name, asset_type, quantity, purchase_price, total_cost, purchase_date, currency)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (request.ticker.upper(), request.company_name, request.asset_type,
+             request.quantity, request.purchase_price, total_cost,
+             request.purchase_date, request.currency),
+        )
+        conn.commit()
+        conn.close()
+        _yf_price_cache.pop(request.ticker.upper(), None)
+        return {"success": True, "ticker": request.ticker.upper(), "quantity": request.quantity, "total_cost": total_cost}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add investment: {str(e)}")
 
+class AddTransactionRequest(BaseModel):
+    date: str
+    description: str
+    amount: float
+    source: str
+    category: str
+
+@app.post("/api/transactions/add")
+async def add_transaction(request: AddTransactionRequest):
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) as cnt FROM transactions")
+        next_id = cursor.fetchone()["cnt"]
+        tx_id = f"MN{next_id:05d}"
+        ts = datetime.strptime(request.date, "%Y-%m-%d")
+        cursor.execute(
+            """INSERT INTO transactions
+               (transaction_id, account_id, source, merchant_name, merchant_id,
+                timestamp, transaction_description, category, amount, currency,
+                predicted_category, confidence, correct, year, month, day)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (tx_id, f"ACC_{request.source.upper()[:8]}_001", request.source,
+             request.description, "", ts.strftime("%Y-%m-%d %H:%M:%S"),
+             request.description, request.category, request.amount, "EUR",
+             request.category, 0.9, True, ts.year, ts.month, ts.day),
+        )
+        conn.commit()
+        conn.close()
+        return {"success": True, "id": tx_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to add transaction: {str(e)}")
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

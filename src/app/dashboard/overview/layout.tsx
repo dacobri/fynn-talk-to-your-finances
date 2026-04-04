@@ -76,13 +76,74 @@ function DashboardContent({
   const topCat = summary?.topCategory ?? { name: '—', amount: 0 };
   const subs = summary?.subscriptions ?? { count: 0, monthlyTotal: 0 };
 
-  // Compute period-specific portfolio value and return from history
   const histLen = investmentHistory.length;
   const periodEndValue = histLen > 0 ? investmentHistory[histLen - 1].amount : (investmentTotals?.currentValue ?? 0);
   const periodStartValue = histLen > 1 ? investmentHistory[0].amount : 0;
   const periodReturn = periodStartValue > 0
     ? ((periodEndValue - periodStartValue) / periodStartValue) * 100
     : (investmentTotals?.returnPct ?? 0);
+
+  const metricCards = [
+    {
+      id: 'income',
+      label: 'Total Income',
+      value: `€${fmt(totalIncome)}`,
+      valueClassName: 'text-green-500',
+      badge: (
+        <Badge variant='outline' className='bg-green-500/10 text-green-500'>
+          <Icons.trendingUp className='h-3 w-3' />
+          Income
+        </Badge>
+      ),
+    },
+    {
+      id: 'spent',
+      label: 'Total Spent',
+      value: `€${fmt(totalSpent)}`,
+      valueClassName: 'text-red-500',
+      badge: (
+        <Badge variant='outline' className='bg-red-500/10 text-red-500'>
+          <Icons.trendingDown className='h-3 w-3' />
+          Expenses
+        </Badge>
+      ),
+    },
+    {
+      id: 'balance',
+      label: 'Net Balance',
+      value: `${netBalance >= 0 ? '' : '-'}€${fmt(Math.abs(netBalance))}`,
+      valueClassName: netBalance >= 0 ? 'text-green-500' : 'text-red-500',
+      badge: (
+        <Badge variant='outline' className={netBalance >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
+          {netBalance >= 0 ? 'Surplus' : 'Deficit'}
+        </Badge>
+      ),
+    },
+    {
+      id: 'topcat',
+      label: 'Top Category',
+      value: topCat.name,
+      badge: <Badge variant='outline'>€{fmt(topCat.amount)}</Badge>,
+    },
+    {
+      id: 'subs',
+      label: 'Subscriptions',
+      value: `${subs.count} active`,
+      href: '/dashboard/subscriptions',
+      badge: <Badge variant='outline'>€{fmt(subs.monthlyTotal)}/mo</Badge>,
+    },
+    {
+      id: 'investments',
+      label: 'Investment Assets',
+      value: `€${fmt(periodEndValue)}`,
+      href: '/dashboard/investments',
+      badge: (
+        <Badge variant='outline' className={periodReturn >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
+          {periodReturn >= 0 ? '+' : ''}{periodReturn.toFixed(1)}%
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <PageContainer>
@@ -92,75 +153,17 @@ function DashboardContent({
 
         {/* Metric Cards */}
         <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-1.5 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-3 lg:grid-cols-6'>
-          <MetricCard
-            key='income'
-            label='Total Income'
-            value={`€${fmt(totalIncome)}`}
-            valueClassName='text-green-500'
-            loading={loading}
-            badge={
-              <Badge variant='outline' className='bg-green-500/10 text-green-500'>
-                <Icons.trendingUp className='h-3 w-3' />
-                Income
-              </Badge>
-            }
-          />
-          <MetricCard
-            key='spent'
-            label='Total Spent'
-            value={`€${fmt(totalSpent)}`}
-            valueClassName='text-red-500'
-            loading={loading}
-            badge={
-              <Badge variant='outline' className='bg-red-500/10 text-red-500'>
-                <Icons.trendingDown className='h-3 w-3' />
-                Expenses
-              </Badge>
-            }
-          />
-          <MetricCard
-            key='balance'
-            label='Net Balance'
-            value={`${netBalance >= 0 ? '' : '-'}€${fmt(Math.abs(netBalance))}`}
-            valueClassName={netBalance >= 0 ? 'text-green-500' : 'text-red-500'}
-            loading={loading}
-            badge={
-              <Badge variant='outline' className={netBalance >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
-                {netBalance >= 0 ? 'Surplus' : 'Deficit'}
-              </Badge>
-            }
-          />
-          <MetricCard
-            key='topcat'
-            label='Top Category'
-            value={topCat.name}
-            loading={loading}
-            badge={
-              <Badge variant='outline'>€{fmt(topCat.amount)}</Badge>
-            }
-          />
-          <MetricCard
-            key='subs'
-            label='Subscriptions'
-            value={`${subs.count} active`}
-            loading={loading}
-            href='/dashboard/subscriptions'
-            badge={
-              <Badge variant='outline'>€{fmt(subs.monthlyTotal)}/mo</Badge>
-            }
-          />
-          <MetricCard
-            key='investments'
-            label='Investment Assets'
-            value={`€${fmt(periodEndValue)}`}
-            loading={loading}
-            href='/dashboard/investments'
-            badge={
-              <Badge variant='outline' className={periodReturn >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
-                {periodReturn >= 0 ? '+' : ''}{periodReturn.toFixed(1)}%
-              </Badge>
-            }
-          />
+          {metricCards.map((card) => (
+            <MetricCard
+              key={card.id}
+              label={card.label}
+              value={card.value}
+              valueClassName={card.valueClassName}
+              loading={loading}
+              href={card.href}
+              badge={card.badge}
+            />
+          ))}
         </div>
 
         {/* Charts Grid */}

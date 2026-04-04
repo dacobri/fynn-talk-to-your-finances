@@ -10,6 +10,8 @@ import { fetchInvestments, fetchInvestmentHistory } from '@/features/finance/uti
 import type { Holding, InvestmentTotals, InvestmentsResponse } from '@/features/finance/utils/mock-data';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 function formatEuro(value: number): string {
   return value.toLocaleString('de-DE', {
     style: 'currency',
@@ -57,7 +59,7 @@ function SummaryCard({
   icon?: React.ComponentType<{ className: string }>;
 }) {
   return (
-    <Card>
+    <Card className='h-full'>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
@@ -138,7 +140,7 @@ function HoldingsTable({ holdings, isLoading }: { holdings: Holding[]; isLoading
 
   if (isLoading) {
     return (
-      <Card>
+      <Card style={{ height: '580px', overflow: 'auto' }}>
         <CardHeader>
           <CardTitle>Portfolio Holdings</CardTitle>
         </CardHeader>
@@ -355,7 +357,7 @@ function AllocationChart({ holdings, isLoading }: { holdings: Holding[]; isLoadi
         <CardTitle>Asset Allocation</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={353}>
           <PieChart>
             <Pie
               data={chartData}
@@ -380,14 +382,14 @@ function AllocationChart({ holdings, isLoading }: { holdings: Holding[]; isLoadi
             />
           </PieChart>
         </ResponsiveContainer>
-        <div className="mt-6 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-2 w-fit mx-auto">
           {chartData.map((item, index) => (
             <div key={item.name} className="flex items-center gap-2 text-sm">
               <div
                 className="h-3 w-3 rounded-full"
                 style={{ backgroundColor: COLORS[index % COLORS.length] }}
               />
-              <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm w-48">
                 <div className="font-medium">{item.name}</div>
                 <div className="text-xs text-muted-foreground">
                   {item.value.toFixed(2)}% ({formatEuro(item.currentValue)})
@@ -400,6 +402,115 @@ function AllocationChart({ holdings, isLoading }: { holdings: Holding[]; isLoadi
     </Card>
   );
 }
+function AddOrderDialog({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
+  const [ticker, setTicker] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [assetType, setAssetType] = useState('ETF');
+  const [quantity, setQuantity] = useState('');
+  const [price, setPrice] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState('');
+  const [currency, setCurrency] = useState('EUR');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    if (!ticker || !quantity || !price || !purchaseDate) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/investments/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticker: ticker.toUpperCase(),
+          company_name: companyName || ticker.toUpperCase(),
+          asset_type: assetType,
+          quantity: parseFloat(quantity),
+          purchase_price: parseFloat(price),
+          purchase_date: purchaseDate,
+          currency,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Request failed' }));
+        throw new Error(err.detail || 'Request failed');
+      }
+      setTicker(''); setCompanyName(''); setQuantity(''); setPrice(''); setPurchaseDate('');
+      onAdded();
+      onClose();
+    } catch (e: any) {
+      setError(e.message || 'Failed to add order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+      <div className='bg-background rounded-xl shadow-xl p-6 w-full max-w-md mx-4'>
+        <h2 className='text-lg font-semibold mb-4'>Add Buy Order</h2>
+        <div className='space-y-3'>
+          <div className='grid grid-cols-2 gap-3'>
+            <div>
+              <label className='text-xs font-medium text-muted-foreground mb-1 block'>Ticker *</label>
+              <input className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm' placeholder='e.g. VWCE.DE' value={ticker} onChange={(e) => setTicker(e.target.value)} />
+            </div>
+            <div>
+              <label className='text-xs font-medium text-muted-foreground mb-1 block'>Asset Type</label>
+              <select value={assetType} onChange={(e) => setAssetType(e.target.value)} className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm'>
+                <option value='ETF'>ETF</option>
+                <option value='Stock'>Stock</option>
+                <option value='Bond'>Bond</option>
+                <option value='Crypto'>Crypto</option>
+                <option value='Other'>Other</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className='text-xs font-medium text-muted-foreground mb-1 block'>Company Name (optional)</label>
+            <input className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm' placeholder='e.g. Vanguard FTSE All-World' value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+          </div>
+          <div className='grid grid-cols-2 gap-3'>
+            <div>
+              <label className='text-xs font-medium text-muted-foreground mb-1 block'>Quantity *</label>
+              <input type='number' className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm' placeholder='e.g. 10.5' value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+            </div>
+            <div>
+              <label className='text-xs font-medium text-muted-foreground mb-1 block'>Price per Share *</label>
+              <input type='number' className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm' placeholder='e.g. 99.50' value={price} onChange={(e) => setPrice(e.target.value)} />
+            </div>
+          </div>
+          <div className='grid grid-cols-2 gap-3'>
+            <div>
+              <label className='text-xs font-medium text-muted-foreground mb-1 block'>Purchase Date *</label>
+              <input type='date' className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm' value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
+            </div>
+            <div>
+              <label className='text-xs font-medium text-muted-foreground mb-1 block'>Currency</label>
+              <select value={currency} onChange={(e) => setCurrency(e.target.value)} className='w-full h-9 rounded-md border border-input bg-background px-3 text-sm'>
+                <option value='EUR'>EUR</option>
+                <option value='USD'>USD</option>
+                <option value='GBP'>GBP</option>
+              </select>
+            </div>
+          </div>
+          {error && <p className='text-sm text-red-500'>{error}</p>}
+        </div>
+        <div className='flex gap-2 mt-5 justify-end'>
+          <button onClick={onClose} disabled={loading} className='inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted'>Cancel</button>
+          <button onClick={handleSubmit} disabled={loading} className='inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90'>
+            {loading ? 'Adding...' : 'Add Order'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function InvestmentsPageComponent() {
   const [holdings, setHoldings] = useState<Holding[]>([]);
@@ -410,6 +521,7 @@ export default function InvestmentsPageComponent() {
     returnPct: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [addOrderOpen, setAddOrderOpen] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -443,6 +555,14 @@ export default function InvestmentsPageComponent() {
       scrollable
       pageTitle="Investments"
       pageDescription="Track your investment portfolio performance."
+      pageHeaderAction={
+        <button
+          onClick={() => setAddOrderOpen(true)}
+          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          + Add Buy Order
+        </button>
+      }
     >
       <div className="space-y-6">
         {/* Summary Cards */}
@@ -469,8 +589,8 @@ export default function InvestmentsPageComponent() {
         </div>
 
         {/* Holdings Table and Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <div className="lg:col-span-2 self-start">
             <HoldingsTable holdings={holdings} isLoading={isLoading} />
           </div>
           <div>
@@ -478,6 +598,18 @@ export default function InvestmentsPageComponent() {
           </div>
         </div>
       </div>
+      <AddOrderDialog
+        open={addOrderOpen}
+        onClose={() => setAddOrderOpen(false)}
+        onAdded={() => {
+          setIsLoading(true);
+          fetchInvestments(true).then((data) => {
+            setHoldings(data.holdings || []);
+            setTotals(data.totals || { invested: 0, currentValue: 0, returnEur: 0, returnPct: 0 });
+            setIsLoading(false);
+          });
+        }}
+      />
     </PageContainer>
   );
 }

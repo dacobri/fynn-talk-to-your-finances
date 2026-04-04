@@ -23,6 +23,8 @@ import { formatEuro, classifyTransaction } from '../utils/format';
 import { CategoryBadge } from './category-badge';
 import { toast } from 'sonner';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface AddTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -36,8 +38,24 @@ export function AddTransactionDialog({
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<'expense' | 'income'>('expense');
+  const [source, setSource] = useState('CaixaBank');
   const [predictedCategory, setPredictedCategory] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [accounts, setAccounts] = useState<string[]>(['CaixaBank']);
+
+  // Load available bank accounts
+  useEffect(() => {
+    fetch(`${API_BASE}/api/accounts`)
+      .then((r) => r.json())
+      .then((data) => {
+        const names = (data.accounts ?? []).map((a: any) => a.name);
+        if (names.length > 0) {
+          setAccounts(names);
+          setSource(names[0]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Auto-classify transaction as user types
   useEffect(() => {
@@ -52,27 +70,34 @@ export function AddTransactionDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate all fields
-    if (!date) {
-      toast.error('Please select a date');
-      return;
-    }
-    if (!description.trim()) {
-      toast.error('Please enter a description');
-      return;
-    }
-    if (!amount || parseFloat(amount) <= 0) {
-      toast.error('Please enter a valid amount');
-      return;
-    }
+    if (!date) { toast.error('Please select a date'); return; }
+    if (!description.trim()) { toast.error('Please enter a description'); return; }
+    if (!amount || parseFloat(amount) <= 0) { toast.error('Please enter a valid amount'); return; }
 
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const signedAmount = type === 'expense'
+        ? -Math.abs(parseFloat(amount))
+        : Math.abs(parseFloat(amount));
 
-      // Show success message
+      const res = await fetch(`${API_BASE}/api/transactions/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date,
+          description: description.trim(),
+          amount: signedAmount,
+          source,
+          category: predictedCategory || (type === 'income' ? 'Income' : 'Shopping & Retail'),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: 'Failed to add transaction' }));
+        throw new Error(err.detail || 'Failed to add transaction');
+      }
+
       toast.success('Transaction added successfully');
 
       // Reset form
@@ -82,17 +107,12 @@ export function AddTransactionDialog({
       setType('expense');
       setPredictedCategory('');
 
-      // Close dialog
       onOpenChange(false);
-    } catch (error) {
-      toast.error('Failed to add transaction');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add transaction');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDate(e.target.value);
   };
 
   return (
@@ -109,19 +129,19 @@ export function AddTransactionDialog({
           onSubmit={handleSubmit}
           className="flex flex-1 flex-col gap-4 overflow-auto py-4"
         >
-          {/* Date Picker */}
+          {/* Date */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="date">Date *</Label>
             <Input
               id="date"
               type="date"
               value={date}
-              onChange={handleDateChange}
+              onChange={(e) => setDate(e.target.value)}
               required
             />
           </div>
 
-          {/* Description Input */}
+          {/* Description */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="description">Description *</Label>
             <Input
@@ -133,7 +153,7 @@ export function AddTransactionDialog({
             />
           </div>
 
-          {/* Amount Input */}
+          {/* Amount */}
           <div className="flex flex-col gap-2">
             <Label htmlFor="amount">Amount (€) *</Label>
             <Input
@@ -148,7 +168,7 @@ export function AddTransactionDialog({
             />
           </div>
 
-          {/* Type Toggle */}
+          {/* Type */}
           <div className="flex flex-col gap-2">
             <Label>Type *</Label>
             <div className="flex gap-2">
@@ -175,6 +195,21 @@ export function AddTransactionDialog({
             </div>
           </div>
 
+          {/* Bank Account */}
+          <div className="flex flex-col gap-2">
+            <Label>Bank Account *</Label>
+            <Select value={source} onValueChange={setSource}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select account" />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.map((acc) => (
+                  <SelectItem key={acc} value={acc}>{acc}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Category Preview */}
           {predictedCategory && (
             <div className="flex flex-col gap-2">
@@ -191,19 +226,13 @@ export function AddTransactionDialog({
               <p className="text-xs text-muted-foreground">
                 {type === 'income' ? 'You will receive' : 'You will spend'}
               </p>
-              <p
-                className={`text-lg font-bold ${
-                  type === 'income'
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-foreground'
-                }`}
-              >
+              <p className={`text-lg font-bold ${type === 'income' ? 'text-green-600' : 'text-foreground'}`}>
                 {type === 'income' ? '+' : '-'}{formatEuro(Math.abs(parseFloat(amount) || 0))}
               </p>
             </div>
           )}
 
-          {/* Submit Button */}
+          {/* Submit */}
           <div className="flex gap-2 pt-4">
             <Button
               type="button"
@@ -214,11 +243,7 @@ export function AddTransactionDialog({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1"
-            >
+            <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? (
                 <>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
