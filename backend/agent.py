@@ -104,6 +104,11 @@ def make_chart(chart_type: str, sql_query: str, title: str = "") -> str:
         x_col = cols[0]
         y_col = cols[1] if len(cols) > 1 else cols[0]
 
+        # Keep only the two relevant columns, then aggregate duplicate labels
+        df = df[[x_col, y_col]].copy()
+        if df[x_col].duplicated().any():
+            df = df.groupby(x_col, sort=False)[y_col].sum().reset_index()
+
         # Convert month numbers → short names for readability
         MONTH_NAMES = {1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
                        7:"Jul",8:"Aug",9:"Sep",10:"Oct",11:"Nov",12:"Dec"}
@@ -333,14 +338,14 @@ def make_chart(chart_type: str, sql_query: str, title: str = "") -> str:
 # SYSTEM PROMPT
 # ─────────────────────────────────────────────────────────────────────────────
 
-_SYSTEM_PROMPT_TEMPLATE = """You are Fynn, a friendly AI financial assistant for {user_name}, a user from Barcelona.
+_SYSTEM_PROMPT_TEMPLATE = """You are Fynn, a friendly AI financial assistant for {user_name}.
 You have access to {user_name}'s personal transaction history via two tools.
 {budget_section}
 {language_section}
 ## Workflow
-1. ALWAYS call run_sql first to get real data before answering.
+1. ALWAYS call run_sql first to get real data before answering. NEVER assume or hardcode any facts about the user — discover everything from the data.
 2. Call make_chart when showing trends, breakdowns, or comparisons over time.
-3. Reply in the same language the user writes in (English, Italian, or Spanish).
+3. Reply in the same language the user writes in.
 
 ## Database schema
 The `transactions` table has these columns:
@@ -356,33 +361,37 @@ There is also an `investments` table:
   - Expenses: WHERE amount < 0   (use ABS(amount) to get the positive value)
   - Income:   WHERE predicted_category = 'Income' (amount is positive)
 - Special categories to EXCLUDE from spending/income analysis:
-  - 'Transfer' — money moving between {user_name}'s own accounts (CaixaBank ↔ Revolut)
-  - 'Investment' — monthly DEGIRO investment purchases
+  - 'Transfer' — money moving between the user's own accounts
+  - 'Investment' — investment purchases
   - Always add: AND predicted_category NOT IN ('Transfer', 'Investment')
-- Multi-bank: the `source` column identifies the bank ('CaixaBank', 'Revolut', etc.)
-  - To filter by bank: WHERE source = 'CaixaBank' (or 'Revolut')
-- {user_name} earns €5,000-6,500/month from merchant 'Employer' (CaixaBank).
-- {user_name} also earns photography side income via Revolut (STRIPE TRANSFER, BIZUM FOTOGRAFIA, INGRESO FOTOGRAFIA).
-- {user_name} invests €200/month into DEGIRO. Their investment portfolio includes: VWCE.DE, AAPL, MSFT, NVDA, ASML.AS, MC.PA, CSPX.L.
+- IMPORTANT — category analysis: some categories may contain mixed merchant types.
+  When asked about "biggest expense" or "top category", always drill down to the merchant level
+  (GROUP BY merchant_name) to give accurate answers. A single large merchant (e.g. rent) inside
+  a category can dominate — identify and report it separately rather than attributing everything
+  to the category name.
+- Multi-bank: the `source` column identifies the bank (e.g. 'CaixaBank', 'Revolut', etc.)
 - Filter periods with integer columns: `year` (e.g. 2023) and `month` (1–12).
 - Merchant search: WHERE LOWER(merchant_name) LIKE '%keyword%'
-- IMPORTANT — "last week" / "last month" / "recently": the dataset ends in 2024, NOT today.
-  Always use the most recent data available:
+- IMPORTANT — "last week" / "last month" / "recently": the dataset may NOT include today's date.
+  Always determine the most recent data available first:
   - "last month"  → WHERE year = (SELECT MAX(year) FROM transactions) AND month = (SELECT MAX(month) FROM transactions WHERE year=(SELECT MAX(year) FROM transactions))
   - "last week"   → WHERE DATE(timestamp) >= DATE((SELECT MAX(timestamp) FROM transactions), '-7 days')
   - "this year"   → WHERE year = (SELECT MAX(year) FROM transactions)
 
-## Semantic category mapping (CRITICAL)
-When the user mentions a concept, map it to the correct SQL category or merchant pattern:
-- clothes / clothing / fashion / apparel → predicted_category = 'Shopping & Retail' AND (LOWER(merchant_name) LIKE '%h&m%' OR LOWER(merchant_name) LIKE '%zara%' OR LOWER(merchant_name) LIKE '%pull%' OR LOWER(merchant_name) LIKE '%mango%' OR LOWER(merchant_name) LIKE '%uniqlo%' OR LOWER(transaction_description) LIKE '%ropa%' OR LOWER(transaction_description) LIKE '%cloth%')
-- food / eating / restaurants / dining → predicted_category = 'Food & Dining'
-- transport / travel / commute / uber / taxi → predicted_category = 'Transportation'
-- subscriptions / streaming / netflix / recurring → search merchants like netflix, spotify, hbo, youtube, amazon prime
-- health / doctor / pharmacy / medical → predicted_category = 'Healthcare & Medical'
-- utilities / bills / phone / internet → predicted_category = 'Utilities & Services'
-- transfers / revolut / between accounts → predicted_category = 'Transfer' (show but note these are internal)
-- investments / degiro / stocks / portfolio → predicted_category = 'Investment' OR use the investments table
-If unsure, search BOTH predicted_category AND LOWER(merchant_name) LIKE '%keyword%' to not miss anything.
+## Semantic understanding (CRITICAL)
+When the user asks about a concept, use SQL to discover the relevant data rather than assuming specific merchants or categories.
+- groceries / supermarket → query: SELECT DISTINCT merchant_name FROM transactions WHERE predicted_category='Food & Dining' AND amount < 0 GROUP BY merchant_name HAVING AVG(ABS(amount)) > 30 AND COUNT(*) > 10 — these are likely supermarkets (high frequency, moderate amounts). Cross-reference with common supermarket name patterns.
+- dining out / restaurants / bars → Food & Dining merchants that are NOT supermarkets (lower frequency per merchant, smaller average amounts)
+- clothes / fashion → predicted_category = 'Shopping & Retail', then filter by merchant names that suggest clothing stores
+- subscriptions / recurring → find merchants with exactly 1 charge per month, consistent amount (< €1 variance between months), appearing in at least 2 of the last 3 months, active in the most recent month. Exclude rent and insurance. Include telecom/internet as subscriptions.
+- rent / housing → look for the largest single recurring monthly expense (same merchant, same amount every month, high amount)
+- transport / commute → predicted_category = 'Transportation'
+- health / medical → predicted_category = 'Healthcare & Medical'
+- utilities / bills → predicted_category = 'Utilities & Services'
+- transfers → predicted_category = 'Transfer' (internal, between user's own accounts)
+- investments / portfolio → predicted_category = 'Investment' OR query the investments table
+- income / salary → predicted_category = 'Income' or WHERE amount > 0
+If unsure about a concept, run exploratory queries (e.g. SELECT DISTINCT merchant_name, COUNT(*) ...) to discover the relevant merchants before answering.
 
 ## Response formatting (CRITICAL)
 - Use **bold** for key numbers and amounts (e.g. **€1,234**)
@@ -405,7 +414,7 @@ If unsure, search BOTH predicted_category AND LOWER(merchant_name) LIKE '%keywor
 def _build_system_prompt(user_context: dict = None) -> str:
     """Build the system prompt dynamically from user preferences."""
     ctx = user_context or {}
-    user_name = ctx.get("user_name") or "Marc"
+    user_name = ctx.get("user_name") or "the user"
     language = ctx.get("language") or "English"
     monthly_budget = ctx.get("monthly_budget")
 
