@@ -32,7 +32,7 @@ function MetricCard({
   href?: string;
 }) {
   const card = (
-    <Card className={`@container/card ${href ? 'cursor-pointer transition-shadow hover:shadow-md' : ''}`}>
+    <Card className={`@container/card h-full ${href ? 'cursor-pointer transition-shadow hover:shadow-md' : ''}`}>
       <CardHeader className='py-2.5'>
         <CardDescription>{label}</CardDescription>
         {loading ? (
@@ -47,7 +47,7 @@ function MetricCard({
     </Card>
   );
   if (href) {
-    return <Link href={href}>{card}</Link>;
+    return <Link href={href} className='h-full'>{card}</Link>;
   }
   return card;
 }
@@ -68,7 +68,7 @@ function DashboardContent({
   area_stats: React.ReactNode;
 }) {
   const { dateRange, setDateRange, data } = useDashboard();
-  const { summary, investmentTotals, investmentHistory, loading } = data;
+  const { summary, investmentTotals, investmentHistory, investmentReturnPct, loading } = data;
 
   const totalIncome = summary?.totalIncome ?? 0;
   const totalSpent = summary?.totalSpent ?? 0;
@@ -76,12 +76,12 @@ function DashboardContent({
   const topCat = summary?.topCategory ?? { name: '—', amount: 0 };
   const subs = summary?.subscriptions ?? { count: 0, monthlyTotal: 0 };
 
-  const histLen = investmentHistory.length;
-  const periodEndValue = histLen > 0 ? investmentHistory[histLen - 1].amount : (investmentTotals?.currentValue ?? 0);
-  const periodStartValue = histLen > 1 ? investmentHistory[0].amount : 0;
-  const periodReturn = periodStartValue > 0
-    ? ((periodEndValue - periodStartValue) / periodStartValue) * 100
-    : (investmentTotals?.returnPct ?? 0);
+  // Use the live portfolio value from /api/investments (real-time spot prices)
+  // rather than the last point of the downsampled history array
+  const periodEndValue = investmentTotals?.currentValue ?? 0;
+  // Use the backend-computed Modified Dietz return which accounts for
+  // capital contributions, falling back to overall return from /api/investments
+  const periodReturn = investmentReturnPct ?? (investmentTotals?.returnPct ?? 0);
 
   const metricCards = [
     {
@@ -140,6 +140,7 @@ function DashboardContent({
       badge: (
         <Badge variant='outline' className={periodReturn >= 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
           {periodReturn >= 0 ? '+' : ''}{periodReturn.toFixed(1)}%
+          <span className='ml-1 text-muted-foreground opacity-70' style={{ fontSize: '0.65rem' }}>MWR</span>
         </Badge>
       ),
     },

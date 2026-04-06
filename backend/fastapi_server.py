@@ -1325,13 +1325,68 @@ async def get_investment_history(
             if total_value > 0:
                 data_points.append({"label": date[5:], "amount": round(total_value, 2), "date": date})
 
-        # Determine granularity
+        # ── Modified Dietz return calculation ──────────────────────
+        # Separates genuine market returns from capital contributions.
+        # Formula: R = (V_end - V_start - CF) / (V_start + Σ(cf_i * w_i))
+        # where w_i = (total_days - days_since_cf) / total_days
+        modified_dietz_pct = None
+        if len(data_points) >= 2:
+            v_start = data_points[0]["amount"]
+            v_end = data_points[-1]["amount"]
+            range_start = data_points[0]["date"]
+            range_end = data_points[-1]["date"]
+            total_days = (datetime.strptime(range_end, "%Y-%m-%d") - datetime.strptime(range_start, "%Y-%m-%d")).days
+            if total_days <= 0:
+                total_days = 1
+
+            # Sum contributions (purchase cost in EUR) that fall strictly
+            # within the period (after the start date)
+            net_contributions = 0.0
+            weighted_contributions = 0.0
+            for p in purchases_sorted:
+                p_date = p["purchase_date"]
+                if p_date <= range_start or p_date > range_end:
+                    continue
+                # Calculate cost in EUR for this purchase
+                p_ticker = p["ticker"]
+                p_qty = p["quantity"]
+                # Use the purchase-date price from history if available,
+                # otherwise fall back to the nearest available price
+                p_price = ticker_histories.get(p_ticker, {}).get(p_date)
+                if p_price is None:
+                    # Find nearest earlier price
+                    th = ticker_histories.get(p_ticker, {})
+                    for d in sorted(th.keys(), reverse=True):
+                        if d <= p_date:
+                            p_price = th[d]
+                            break
+                if p_price is None:
+                    continue
+                ccy = p.get("currency", "EUR")
+                yf_info = _yf_price_cache.get(p_ticker, {})
+                price_ccy = yf_info.get("currency", ccy)
+                fx = _get_fx_rate(price_ccy, "EUR")
+                cf_eur = p_qty * p_price * fx
+
+                days_since = (datetime.strptime(p_date, "%Y-%m-%d") - datetime.strptime(range_start, "%Y-%m-%d")).days
+                weight = (total_days - days_since) / total_days
+
+                net_contributions += cf_eur
+                weighted_contributions += cf_eur * weight
+
+            denominator = v_start + weighted_contributions
+            if denominator > 0:
+                modified_dietz_pct = round(((v_end - v_start - net_contributions) / denominator) * 100, 2)
+
+        # ── Determine granularity ─────────────────────────────────
         span = len(data_points)
         if span > 200:
-            # Downsample to weekly
+            # Downsample to weekly, always including the final data point
             weekly = []
             for i in range(0, len(data_points), 5):
                 weekly.append(data_points[i])
+            if weekly[-1] != data_points[-1]:
+                weekly.append(data_points[-1])
             data_points = weekly
             granularity = "weekly"
         elif span > 60:
@@ -1339,7 +1394,7 @@ async def get_investment_history(
         else:
             granularity = "daily"
 
-        return {"data": data_points, "granularity": granularity}
+        return {"data": data_points, "granularity": granularity, "returnPct": modified_dietz_pct}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Investment history error: {str(e)}")

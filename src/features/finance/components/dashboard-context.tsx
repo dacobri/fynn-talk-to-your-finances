@@ -19,6 +19,7 @@ interface DashboardData {
   investmentHoldings: Holding[];
   investmentHistory: InvestmentHistoryPoint[];
   investmentGranularity: 'daily' | 'weekly' | 'monthly';
+  investmentReturnPct: number | null;
   loading: boolean;
 }
 
@@ -51,6 +52,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     investmentHoldings: [],
     investmentHistory: [],
     investmentGranularity: 'daily',
+    investmentReturnPct: null,
     loading: true,
   });
 
@@ -67,6 +69,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => ({ ...prev, loading: true }));
 
     const qs = new URLSearchParams({ start: dateRange.start, end: dateRange.end }).toString();
+    // Investment prices are live from Yahoo Finance, so always use today's
+    // date as the end — unlike transactions which are bounded by synthetic data.
+    const today = new Date().toISOString().split('T')[0];
+    const investQs = new URLSearchParams({ start: dateRange.start, end: today }).toString();
 
     Promise.all([
       fetch(`${API_BASE}/api/summary?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
@@ -74,7 +80,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       fetch(`${API_BASE}/api/monthly-spending?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
       fetch(`${API_BASE}/api/transactions?${qs}&limit=5`).then((r) => r.ok ? r.json() : null).catch(() => null),
       fetch(`${API_BASE}/api/investments`).then((r) => r.ok ? r.json() : null).catch(() => null),
-      fetch(`${API_BASE}/api/investments/history?${qs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
+      fetch(`${API_BASE}/api/investments/history?${investQs}`).then((r) => r.ok ? r.json() : null).catch(() => null),
     ]).then(([summary, catData, trendData, txData, investData, investHistData]) => {
       if (cancelled) return;
       setData({
@@ -87,6 +93,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         investmentHoldings: investData?.holdings ?? [],
         investmentHistory: investHistData?.data ?? [],
         investmentGranularity: investHistData?.granularity ?? 'daily',
+        investmentReturnPct: investHistData?.returnPct ?? null,
         loading: false,
       });
     });

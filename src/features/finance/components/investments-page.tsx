@@ -50,12 +50,14 @@ function SummaryCard({
   value,
   isLoading,
   subtitle,
+  subtitle2,
   icon: Icon,
 }: {
   title: string;
   value: string;
   isLoading: boolean;
   subtitle?: string;
+  subtitle2?: string;
   icon?: React.ComponentType<{ className: string }>;
 }) {
   return (
@@ -74,6 +76,7 @@ function SummaryCard({
           <>
             <div className="text-2xl font-bold">{value}</div>
             {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
+            {subtitle2 && <p className="text-xs text-muted-foreground mt-0.5">{subtitle2}</p>}
           </>
         )}
       </CardContent>
@@ -522,6 +525,7 @@ export default function InvestmentsPageComponent() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [addOrderOpen, setAddOrderOpen] = useState(false);
+  const [mwrPct, setMwrPct] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -536,8 +540,11 @@ export default function InvestmentsPageComponent() {
           returnPct: 0,
         });
 
-        // Fetch history (optional, for future use)
-        await fetchInvestmentHistory();
+        // Fetch full-range history to get the Modified Dietz (MWR) return
+        const histData = await fetchInvestmentHistory();
+        if (histData && typeof (histData as Record<string, unknown>).returnPct === 'number') {
+          setMwrPct((histData as Record<string, unknown>).returnPct as number);
+        }
       } catch (error) {
         console.error('Failed to load investments:', error);
       } finally {
@@ -583,7 +590,8 @@ export default function InvestmentsPageComponent() {
             title="Total Return"
             value={formatEuro(totals.returnEur)}
             isLoading={isLoading}
-            subtitle={`${isPositiveReturn ? '+' : ''}${formatNumber(totals.returnPct)}%`}
+            subtitle={`${isPositiveReturn ? '+' : ''}${formatNumber(totals.returnPct)}% · Simple return`}
+            subtitle2={mwrPct !== null ? `${mwrPct >= 0 ? '+' : ''}${mwrPct.toFixed(1)}% · Time-weighted (MWR)` : undefined}
             icon={isPositiveReturn ? Icons.trendingUp : Icons.trendingDown}
           />
         </div>
@@ -603,9 +611,12 @@ export default function InvestmentsPageComponent() {
         onClose={() => setAddOrderOpen(false)}
         onAdded={() => {
           setIsLoading(true);
-          fetchInvestments(true).then((data) => {
+          Promise.all([fetchInvestments(true), fetchInvestmentHistory()]).then(([data, histData]) => {
             setHoldings(data.holdings || []);
             setTotals(data.totals || { invested: 0, currentValue: 0, returnEur: 0, returnPct: 0 });
+            if (histData && typeof (histData as Record<string, unknown>).returnPct === 'number') {
+              setMwrPct((histData as Record<string, unknown>).returnPct as number);
+            }
             setIsLoading(false);
           });
         }}
