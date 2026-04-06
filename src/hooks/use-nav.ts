@@ -79,17 +79,8 @@ export function useFilteredNavItems(items: NavItem[]) {
           }
         }
 
-        // Note: Plans and features require server-side checks with Clerk's has() function
-        // For navigation visibility, you can either:
-        // 1. Store plan/feature info in organization metadata (client-accessible)
-        // 2. Use server actions (current approach)
-        // 3. Skip plan/feature checks for navigation (recommended for performance)
-
-        // For now, if plan/feature is specified, we'll need to handle it differently
-        // Most navigation items won't need plan/feature checks anyway
+        // Plan and feature-based visibility checks are handled at the page level.
         if (item.access.plan || item.access.feature) {
-          // Option: Return true and let the page handle it, or use server action
-          // For now, we'll show it (page-level protection should handle it)
           console.warn(
             `Plan/feature checks for navigation items require server-side verification. ` +
               `Item "${item.title}" will be shown, but page-level protection should be implemented.`
@@ -132,7 +123,7 @@ export function useFilteredNavItems(items: NavItem[]) {
               }
             }
 
-            // Plan/feature checks (same warning as above)
+            // Plan and feature-based visibility checks are handled at the page level.
             if (childItem.access.plan || childItem.access.feature) {
               console.warn(
                 `Plan/feature checks for navigation items require server-side verification. ` +

@@ -1,8 +1,12 @@
-# Fynn — Talk to Your Finances
+# Fynn -- Talk to Your Finances
 
-Fynn is an AI-powered personal finance dashboard that lets users consolidate multiple bank accounts, explore spending analytics, track investment portfolios, and chat with an intelligent financial assistant. Users can ask natural language questions about their money and receive real-time answers backed by SQL queries and interactive charts.
+**Course:** Prototyping Products with Data & AI
+**Program:** MSc in Business Analytics, Esade Business School (2025--2026)
+**Team:** Brice Da Costa, Florian Nix, Gianluca Bavelloni
 
-Built as a group project for the **Prototyping Products with Data & AI** course at **Esade MSc Business Analytics** (2025-2026). The project accounts for 20% of the course grade.
+---
+
+Fynn is an AI-powered personal finance dashboard that lets users consolidate multiple bank accounts, explore spending analytics, track investment portfolios, and chat with an intelligent financial assistant. Users can ask natural-language questions about their money and receive real-time answers backed by SQL queries and interactive charts.
 
 **The problem:** People manage their money across multiple bank accounts and brokerage platforms but have no single place to see the full picture. Existing banking apps show only their own data and offer no intelligent analysis.
 
@@ -101,8 +105,6 @@ The frontend communicates with the backend exclusively through REST API calls an
 
 ## Getting Started
 
-Follow these steps to run Fynn on your local machine.
-
 ### Prerequisites
 
 | Tool | Version | Download |
@@ -111,11 +113,11 @@ Follow these steps to run Fynn on your local machine.
 | **Python** | 3.9 or newer | [python.org/downloads](https://www.python.org/downloads/) |
 | **Git** | Any recent version | [git-scm.com/downloads](https://git-scm.com/downloads) |
 
-Verify your installations:
+Verify installations:
 
 ```bash
-node --version    # Should print v18.x.x or higher
-python3 --version # Should print 3.9.x or higher
+node --version    # v18.x.x or higher
+python3 --version # 3.9.x or higher
 git --version
 ```
 
@@ -128,30 +130,28 @@ cd Prototyping_AI_Final_Project
 
 ### Step 2 -- Set up API keys
 
-Fynn requires two services, each with their own API keys.
+Fynn requires two external services.
 
 **Clerk (authentication)**
 
-1. Go to [clerk.com](https://clerk.com/) and create a free account.
+1. Create a free account at [clerk.com](https://clerk.com/).
 2. Create a new application in the Clerk dashboard.
-3. Copy your **Publishable Key** and **Secret Key** from the API Keys page.
+3. Copy the **Publishable Key** and **Secret Key** from the API Keys page.
 
 **Anthropic (AI assistant)**
 
-1. Go to [console.anthropic.com](https://console.anthropic.com/) and create an account.
+1. Create an account at [console.anthropic.com](https://console.anthropic.com/).
 2. Navigate to **API Keys** and generate a new key.
-3. Copy the key (it starts with `sk-ant-`).
+3. Copy the key (starts with `sk-ant-`).
 
 **Create the environment files**
-
-Copy the example files and fill in your keys:
 
 ```bash
 cp .env.example .env.local
 cp backend/.env.example backend/.env
 ```
 
-Edit `.env.local` and replace the placeholder values with your Clerk keys. Edit `backend/.env` and replace the placeholder with your Anthropic API key.
+Edit `.env.local` with the Clerk keys. Edit `backend/.env` with the Anthropic API key.
 
 ### Step 3 -- Install and run the backend
 
@@ -162,43 +162,28 @@ python load_db.py           # Build the SQLite database from source data
 uvicorn fastapi_server:app --reload --port 8000
 ```
 
-> On some systems use `pip3` instead of `pip`. If you get permissions errors, use a virtual environment: `python3 -m venv venv && source venv/bin/activate` first.
+> On some systems, use `pip3` instead of `pip`. For permissions errors, create a virtual environment first: `python3 -m venv venv && source venv/bin/activate`.
 
-The API will start at **http://localhost:8000**. Verify it by visiting [http://localhost:8000/api/health](http://localhost:8000/api/health).
+The API starts at **http://localhost:8000**. Verify by visiting [http://localhost:8000/api/health](http://localhost:8000/api/health).
 
 ### Step 4 -- Install and run the frontend
 
-Open a **second terminal** (keep the backend running) and run:
+In a separate terminal (keep the backend running):
 
 ```bash
 npm install
 npm run dev
 ```
 
-The app will start at **http://localhost:3000**.
+The application starts at **http://localhost:3000**.
 
-### Step 5 -- Open the app
+### Step 5 -- Access the application
 
-1. Open [http://localhost:3000](http://localhost:3000) in your browser.
-2. Sign in or create an account via the Clerk sign-in page.
-3. You will land on the dashboard at `/dashboard/overview`.
+1. Open [http://localhost:3000](http://localhost:3000).
+2. Sign in or create an account via the Clerk authentication page.
+3. The dashboard loads at `/dashboard/overview`.
 
-> The frontend works without the backend running (it falls back to mock data), but the backend is required for the AI chat, live transaction queries, investment prices, and subscription detection.
-
----
-
-## Demo Flow
-
-Suggested walkthrough for presenting the app:
-
-1. **Dashboard** -- Show the six metric cards, spending trend chart, and portfolio value chart. Change the date range (e.g., Last 3 months vs. Max) to show how everything updates.
-2. **Category drill-down** -- Click a category bar in the Spending by Category chart to navigate to a pre-filtered Transactions view.
-3. **Transactions** -- Demonstrate search, filters (type, category, bank account, amount range), and sorting. Show the signed amounts (green for income, red for expenses).
-4. **CSV Upload** -- Navigate to Profile, click "Add Account", and upload the Revolut CSV (`backend/data/marc_revolut_export.csv`). Show transactions appearing with the Revolut bank filter.
-5. **Investments** -- Navigate to the Investments page. Show the summary cards, sortable holdings table, today's return column, and expandable rows with individual buy orders. Point out the asset allocation donut.
-6. **Chat with Fynn** -- Open the chat panel and ask questions: "What did I spend most on last month?", "Show me a chart of my monthly spending by category", "How much do I spend at restaurants vs supermarkets?". Highlight the SQL tool calls and inline Plotly charts.
-7. **Subscriptions** -- Show the detected subscriptions page with active/inactive tabs.
-8. **To reset the demo**: Run `python backend/load_db.py` to rebuild the database from scratch (removes uploaded Revolut data so the upload can be demonstrated again).
+> The frontend includes mock data fallbacks and functions without the backend, but the backend is required for the AI chat, live transaction queries, investment prices, and subscription detection.
 
 ---
 
@@ -210,6 +195,7 @@ Suggested walkthrough for presenting the app:
 | `POST` | `/api/chat` | Send a message to the AI assistant |
 | `POST` | `/api/chat/stream` | Streaming SSE endpoint with live reasoning steps |
 | `GET` | `/api/transactions` | Paginated transactions with search, filter, date range, source |
+| `POST` | `/api/transactions/add` | Add a new transaction manually |
 | `GET` | `/api/summary` | Aggregate financial metrics for a date range |
 | `GET` | `/api/categories` | Spending breakdown by category |
 | `GET` | `/api/monthly-spending` | Spending trend with adaptive granularity |
@@ -219,15 +205,14 @@ Suggested walkthrough for presenting the app:
 | `POST` | `/api/upload-csv` | Upload and classify a bank CSV (multipart form) |
 | `GET` | `/api/investments` | Holdings with live prices, gain/loss, optional orders |
 | `GET` | `/api/investments/history` | Portfolio value over time for charting |
+| `POST` | `/api/investments/add` | Add a new investment buy order |
 | `GET` | `/api/stats` | Total transaction count |
-| `POST` | `/api/transactions/add` | Manually add a new transaction |
-| `POST` | `/api/investments/add` | Manually add a new investment buy order |
 
 ---
 
 ## The Data
 
-The app uses synthetic financial data for **Marc Ferrer**, a 27-year-old junior banker living in Barcelona. The dataset spans January 2020 to December 2024 and includes 2,280 CaixaBank transactions across 8 categories, plus a Revolut CSV export for demo upload and 41 DEGIRO investment purchase records across 7 holdings (VWCE.DE, ASML.AS, AAPL, MSFT, NVDA, MC.PA, CSPX.L).
+The application uses synthetic financial data for a fictional persona, **Marc Ferrer**, a 27-year-old junior banker living in Barcelona. The dataset spans January 2020 to December 2024 and includes 2,280 CaixaBank transactions across 8 categories, a Revolut CSV export for multi-bank upload testing, and 41 DEGIRO investment purchase records across 7 holdings (VWCE.DE, ASML.AS, AAPL, MSFT, NVDA, MC.PA, CSPX.L).
 
 Amounts are signed: negative for expenses, positive for income. Inter-account transfers (CaixaBank to Revolut and vice versa) and investment transactions (DEGIRO) are automatically classified and excluded from spending metrics.
 
@@ -289,16 +274,6 @@ Prototyping_AI_Final_Project/
 |-- tsconfig.json                     TypeScript configuration
 |-- postcss.config.js                 Tailwind CSS configuration
 ```
-
----
-
-## Team
-
-**Team Fynn** -- Esade MSc Business Analytics, Prototyping Products with Data & AI (2025-2026)
-
-- Brice Da Costa
-- Florian Nix
-- Gianluca Bavelloni
 
 ---
 

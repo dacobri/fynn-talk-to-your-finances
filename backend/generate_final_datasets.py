@@ -33,7 +33,7 @@ def fixed_dt(year, month, day, night=False):
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. REVOLUT CSV — real export format, ~40 transactions, NO category column
-#    Covers last ~3 months (Oct–Dec 2024) — small and fast for demo upload
+#    Covers last ~3 months (Oct–Dec 2024) — sample dataset for multi-bank upload testing
 #    Descriptions are real Revolut-style (clean merchant names, CARD PAYMENT prefix)
 # ─────────────────────────────────────────────────────────────────────────────
 print("=" * 60)

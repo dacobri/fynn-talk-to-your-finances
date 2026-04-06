@@ -199,7 +199,7 @@ df = load_data()
 if "messages" not in st.session_state:
     st.session_state.messages = [{
         "role": "bot",
-        "text": "Hey Marc! 👋 I'm your finance assistant. Ask me anything about your transactions — spending, trends, categories, merchants, subscriptions.",
+        "text": "Hello Marc. I'm your financial assistant. Ask me about your spending, trends, categories, merchants, or subscriptions.",
         "chart": None,
         "table": None,
     }]

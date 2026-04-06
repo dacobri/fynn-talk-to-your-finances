@@ -24,7 +24,7 @@ export async function fetchSummary(dateRange?: { start: string; end: string }): 
     if (!response.ok) throw new Error("Failed to fetch summary");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using mock summary data");
+    // Fallback to mock data
     return mockSummary;
   }
 }
@@ -58,7 +58,7 @@ export async function fetchTransactions(params?: {
     if (!response.ok) throw new Error("Failed to fetch transactions");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using mock transactions data");
+    // Fallback to mock data
 
     let filtered = [...mockTransactions];
 
@@ -105,7 +105,7 @@ export async function fetchCategoryBreakdown(dateRange?: { start: string; end: s
     // Backend returns { categories: [...] }
     return data.categories ?? data;
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using mock category breakdown data");
+    // Fallback to mock data
     return mockCategoryBreakdown;
   }
 }
@@ -122,7 +122,7 @@ export async function fetchMonthlySpending(dateRange?: { start: string; end: str
     // Backend returns { data: [...] }
     return data.data ?? data;
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using mock monthly spending data");
+    // Fallback to mock data
     return mockMonthlySpending;
   }
 }
@@ -212,7 +212,7 @@ export async function sendChatMessage(
     if (!response.ok) throw new Error("Failed to send chat message");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using mock chat response");
+    // Fallback to mock data
 
     const mockResponses: Record<string, any> = {
       default: {
@@ -277,7 +277,7 @@ export async function fetchStats(): Promise<{ transactionCount: number }> {
     if (!response.ok) throw new Error("Failed to fetch stats");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using fallback stats");
+    // Fallback to mock data
     return { transactionCount: 3494 };
   }
 }
@@ -304,7 +304,7 @@ export async function fetchAccounts(): Promise<{ accounts: BankAccount[] }> {
     if (!response.ok) throw new Error("Failed to fetch accounts");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using fallback accounts");
+    // Fallback to mock data
     return {
       accounts: [
         { name: "CaixaBank", transactionCount: 2280, firstTransaction: "2020-01-01", lastTransaction: "2024-12-27", status: "connected" },
@@ -339,7 +339,7 @@ export async function fetchInvestments(includeOrders?: boolean): Promise<Investm
     if (!response.ok) throw new Error("Failed to fetch investments");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using fallback investments");
+    // Fallback to mock data
     return { holdings: [], totals: { invested: 0, currentValue: 0, returnEur: 0, returnPct: 0 } };
   }
 }
@@ -354,7 +354,7 @@ export async function fetchInvestmentHistory(dateRange?: { start: string; end: s
     if (!response.ok) throw new Error("Failed to fetch investment history");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using fallback investment history");
+    // Fallback to mock data
     return { data: [], granularity: "daily" };
   }
 }
@@ -365,7 +365,7 @@ export async function fetchSubscriptions(): Promise<SubscriptionsResponse> {
     if (!response.ok) throw new Error("Failed to fetch subscriptions");
     return await response.json();
   } catch (error) {
-    // Fallback: backend unavailable // console.log("Using mock subscriptions data");
+    // Fallback to mock data
     return {
       active: [
         { merchant: 'Netflix', category: 'Entertainment', monthlyCost: 17.99, lastCharge: '2024-12-20', chargeCount: 12, active: true },

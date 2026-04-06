@@ -13,9 +13,6 @@ export const searchParams = {
   category: parseAsString,
   role: parseAsString,
   sort: parseAsString
-  // advanced filter
-  // filters: getFiltersStateParser().withDefault([]),
-  // joinOperator: parseAsStringEnum(['and', 'or']).withDefault('and')
 };
 
 export const searchParamsCache = createSearchParamsCache(searchParams);

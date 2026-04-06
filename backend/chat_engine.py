@@ -1,31 +1,9 @@
 """
-=============================================================================
-CHAT ENGINE — LLM INTEGRATION POINT
-=============================================================================
+Chat engine module for the Fynn financial assistant.
 
-This module handles all chat responses for the "Talk to your Finances" app.
-
-CURRENT STATE (MVP):
-    Simple keyword-matching + pandas queries. Good enough to demo basic
-    financial queries but NOT intelligent.
-
-FOR THE LLM TEAMMATE:
-    Replace the logic inside `get_response()` with your Cohere agent.
-    The function signature and return dict format MUST stay the same so
-    the frontend renders everything correctly.
-
-    Return format:
-        {
-            "text": str,              # Always shown as a chat bubble
-            "chart": plotly.Figure,   # Rendered inline (or None)
-            "table": pd.DataFrame,    # Rendered as a table (or None)
-            "suggestions": list[str]  # Shown as clickable chips (or [])
-        }
-
-FUTURE MIGRATION:
-    When we move to Next.js + FastAPI, this function becomes a POST endpoint.
-    The return dict maps cleanly to a JSON response (chart becomes JSON spec).
-=============================================================================
+Provides the chat response interface used by the Streamlit prototype.
+The production chat implementation uses the LangChain agent defined
+in agent.py, which is served via the FastAPI streaming endpoint.
 """
 
 import pandas as pd
