@@ -28,8 +28,6 @@ Built as a group project for the **Prototyping Products with Data & AI** course 
 
 **Authentication** -- User sign-in and sign-up flows via Clerk.
 
-**Dark/Light Mode** -- Toggle between dark and light themes via the command palette (shortcut: T then H).
-
 ---
 
 ## Tech Stack
@@ -41,7 +39,7 @@ Built as a group project for the **Prototyping Products with Data & AI** course 
 | [Next.js](https://nextjs.org/) 16 | React framework with App Router and parallel routes |
 | [React](https://react.dev/) 19 | UI library |
 | [TypeScript](https://www.typescriptlang.org/) | Type safety |
-| [Tailwind CSS](https://tailwindcss.com/) v4 | Utility-first styling with dark mode |
+| [Tailwind CSS](https://tailwindcss.com/) v4 | Utility-first styling |
 | [shadcn/ui](https://ui.shadcn.com/) | Component library (60+ Radix-based primitives) |
 | [Recharts](https://recharts.org/) | Dashboard chart components |
 | [Plotly.js](https://plotly.com/javascript/) | AI-generated interactive charts |
@@ -222,12 +220,14 @@ Suggested walkthrough for presenting the app:
 | `GET` | `/api/investments` | Holdings with live prices, gain/loss, optional orders |
 | `GET` | `/api/investments/history` | Portfolio value over time for charting |
 | `GET` | `/api/stats` | Total transaction count |
+| `POST` | `/api/transactions/add` | Manually add a new transaction |
+| `POST` | `/api/investments/add` | Manually add a new investment buy order |
 
 ---
 
 ## The Data
 
-The app uses synthetic financial data for **Marc Ferrer**, a 27-year-old junior banker living in Barcelona. The dataset spans January 2020 to December 2024 and includes 2,280 CaixaBank transactions across 10 categories, plus a Revolut CSV export for demo upload and 41 DEGIRO investment purchase records across 7 holdings (VWCE.DE, ASML.AS, AAPL, MSFT, NVDA, MC.PA, CSPX.L).
+The app uses synthetic financial data for **Marc Ferrer**, a 27-year-old junior banker living in Barcelona. The dataset spans January 2020 to December 2024 and includes 2,280 CaixaBank transactions across 8 categories, plus a Revolut CSV export for demo upload and 41 DEGIRO investment purchase records across 7 holdings (VWCE.DE, ASML.AS, AAPL, MSFT, NVDA, MC.PA, CSPX.L).
 
 Amounts are signed: negative for expenses, positive for income. Inter-account transfers (CaixaBank to Revolut and vice versa) and investment transactions (DEGIRO) are automatically classified and excluded from spending metrics.
 
@@ -274,7 +274,7 @@ Prototyping_AI_Final_Project/
 |   |-- styles/                       Global CSS + theme variants
 |
 |-- backend/                          Backend (Python / FastAPI)
-|   |-- fastapi_server.py             REST API + SSE streaming (14 endpoints)
+|   |-- fastapi_server.py             REST API + SSE streaming (16 endpoints)
 |   |-- agent.py                      LangChain + Claude agent (SQL + chart tools)
 |   |-- load_db.py                    Database builder (parquet + investments CSV)
 |   |-- chat_engine.py                Chat message streaming logic

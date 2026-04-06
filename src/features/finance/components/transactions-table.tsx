@@ -188,7 +188,7 @@ export function TransactionsTable({ onAddClick }: TransactionsTableProps) {
         const amount = row.getValue('amount') as number;
         const isPositive = amount >= 0;
         return (
-          <div className={`text-right text-sm font-semibold ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+          <div className={`text-right text-sm font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
             {isPositive ? '+' : ''}{formatEuro(amount)}
           </div>
         );

@@ -31,52 +31,52 @@ const getFileIcon = (fileType: string, fileName: string) => {
   const iconProps = { size: 24 };
 
   if (fileType.startsWith('image/'))
-    return <Icons.media {...iconProps} className='text-emerald-500 dark:text-emerald-400' />;
+    return <Icons.media {...iconProps} className='text-emerald-500' />;
 
   if (fileType === 'application/pdf' || extension === 'pdf')
-    return <Icons.fileTypePdf {...iconProps} className='text-red-500 dark:text-red-400' />;
+    return <Icons.fileTypePdf {...iconProps} className='text-red-500' />;
 
   if (
     ['doc', 'docx', 'odt', 'rtf'].includes(extension) ||
     fileType.includes('wordprocessing') ||
     fileType.includes('msword')
   )
-    return <Icons.fileTypeDoc {...iconProps} className='text-blue-500 dark:text-blue-400' />;
+    return <Icons.fileTypeDoc {...iconProps} className='text-blue-500' />;
 
   if (
     ['xls', 'xlsx', 'csv', 'ods'].includes(extension) ||
     fileType.includes('spreadsheet') ||
     fileType.includes('excel')
   )
-    return <Icons.fileTypeXls {...iconProps} className='text-green-500 dark:text-green-400' />;
+    return <Icons.fileTypeXls {...iconProps} className='text-green-500' />;
 
   if (['txt', 'md'].includes(extension) || fileType === 'text/plain')
-    return <Icons.post {...iconProps} className='text-zinc-500 dark:text-zinc-400' />;
+    return <Icons.post {...iconProps} className='text-zinc-500' />;
 
   if (
     ['js', 'ts', 'jsx', 'tsx', 'py', 'java', 'c', 'cpp', 'html', 'css'].includes(extension) ||
     fileType.includes('javascript') ||
     fileType.includes('typescript')
   )
-    return <Icons.code {...iconProps} className='text-yellow-500 dark:text-yellow-400' />;
+    return <Icons.code {...iconProps} className='text-yellow-500' />;
 
   if (['json', 'xml', 'yaml', 'yml'].includes(extension))
-    return <Icons.code {...iconProps} className='text-zinc-500 dark:text-zinc-400' />;
+    return <Icons.code {...iconProps} className='text-zinc-500' />;
 
   if (fileType.startsWith('video/') || ['mp4', 'avi', 'mov', 'mkv'].includes(extension))
-    return <Icons.video {...iconProps} className='text-purple-500 dark:text-purple-400' />;
+    return <Icons.video {...iconProps} className='text-purple-500' />;
 
   if (fileType.startsWith('audio/') || ['mp3', 'wav', 'ogg'].includes(extension))
-    return <Icons.music {...iconProps} className='text-pink-500 dark:text-pink-400' />;
+    return <Icons.music {...iconProps} className='text-pink-500' />;
 
   if (
     ['zip', 'rar', 'tar', 'gz', '7z'].includes(extension) ||
     fileType.includes('archive') ||
     fileType.includes('compressed')
   )
-    return <Icons.fileZip {...iconProps} className='text-amber-500 dark:text-amber-400' />;
+    return <Icons.fileZip {...iconProps} className='text-amber-500' />;
 
-  return <Icons.page {...iconProps} className='text-zinc-500 dark:text-zinc-400' />;
+  return <Icons.page {...iconProps} className='text-zinc-500' />;
 };
 
 const getFormattedFileType = (fileType: string, fileName: string): string => {

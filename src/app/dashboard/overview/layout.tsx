@@ -152,7 +152,7 @@ function DashboardContent({
         <DateRangeSelector value={dateRange} onChange={setDateRange} />
 
         {/* Metric Cards */}
-        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-2 gap-1.5 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-3 lg:grid-cols-6'>
+        <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card grid grid-cols-2 gap-1.5 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-3 lg:grid-cols-6'>
           {metricCards.map((card) => (
             <MetricCard
               key={card.id}
